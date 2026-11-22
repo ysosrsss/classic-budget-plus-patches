@@ -29,34 +29,20 @@ import org.w3c.dom.Element
 private const val P = "Lorg/classicbudget/patch"
 private const val Y = "Lcom/youneedabudget/ynab"
 
-private val syncResourcesPatch = resourcePatch {
+private val profileResourcesPatch = resourcePatch {
     execute {
-        document("AndroidManifest.xml").use { doc ->
-            // OkHttp (WebDAV / Koofr) needs Android 5.0.
-            val manifest = doc.getElementsByTagName("manifest").item(0) as Element
-            val uses = doc.getElementsByTagName("uses-sdk")
-            val sdk = if (uses.length > 0) uses.item(0) as Element
-            else doc.createElement("uses-sdk").also { manifest.insertBefore(it, manifest.firstChild) }
-            val min = sdk.getAttribute("android:minSdkVersion").toIntOrNull() ?: 1
-            if (min < 21) sdk.setAttribute("android:minSdkVersion", "21")
-        }
         addActivity("org.classicbudget.patch.BackendChooserActivity", addString("cb_sync", "Sync", "Synchronizacja"))
-        addActivity("org.classicbudget.patch.WebDavSetupActivity", "WebDAV")
-        addActivity("org.classicbudget.patch.FolderSetupActivity", addString("cb_folder_test", "Folder (Syncthing)", "Folder (Syncthing)"))
         addActivity("org.classicbudget.patch.SyncSwitchActivity", addString("cb_switch_sync", "Change sync method", "Zmień synchronizację"))
         addActivity(
             "org.classicbudget.patch.SyncResetActivity",
             addString("cb_switch_sync_run", "Changing sync method", "Zmiana synchronizacji"),
-            mapOf("android:process" to ":cbreset", "android:excludeFromRecents" to "true"),
+            mapOf("android:process" to ":cbreset", "android:excludeFromRecents" to "true",
+                "android:configChanges" to "orientation|screenSize|keyboardHidden"),
         )
-        addActivity("org.classicbudget.patch.ConflictReviewActivity", addString("cb_conflicts", "Sync conflicts", "Konflikty synchronizacji"))
-
         val intro = addString(
             "cb_setup_intro",
-            "Choose how this phone syncs the budget: Dropbox, Koofr / WebDAV or a folder synced by Syncthing. " +
-                "Koofr / WebDAV and the folder are a fallback when Dropbox is unavailable (in the TEST app: only inside YNAB4_PLUS_TEST).",
-            "Wybierz, jak telefon synchronizuje budżet: Dropbox, Koofr / WebDAV albo folder synchronizowany przez Syncthing. " +
-                "Koofr / WebDAV i folder to zapas na wypadek awarii Dropboxa (w aplikacji TEST: tylko w YNAB4_PLUS_TEST).",
+            "Choose where this phone syncs the budget. You can select the Dropbox folder before signing in.",
+            "Wybierz miejsce synchronizacji budżetu. Folder Dropbox możesz wybrać przed zalogowaniem.",
         )
         val choose = addString("cb_setup_choose", "Choose sync", "Wybierz synchronizację")
         document("res/layout/fragment_setup_link_dropbox.xml").use { doc ->
@@ -70,6 +56,23 @@ private val syncResourcesPatch = resourcePatch {
             }
             if (hits != 2) throw IllegalStateException("Setup layout: $hits of 2 views found")
         }
+    }
+}
+
+private val syncResourcesPatch = resourcePatch {
+    execute {
+        document("AndroidManifest.xml").use { doc ->
+            // OkHttp (WebDAV / Koofr) needs Android 5.0.
+            val manifest = doc.getElementsByTagName("manifest").item(0) as Element
+            val uses = doc.getElementsByTagName("uses-sdk")
+            val sdk = if (uses.length > 0) uses.item(0) as Element
+            else doc.createElement("uses-sdk").also { manifest.insertBefore(it, manifest.firstChild) }
+            val min = sdk.getAttribute("android:minSdkVersion").toIntOrNull() ?: 1
+            if (min < 21) sdk.setAttribute("android:minSdkVersion", "21")
+        }
+        addActivity("org.classicbudget.patch.WebDavSetupActivity", "WebDAV")
+        addActivity("org.classicbudget.patch.FolderSetupActivity", addString("cb_folder_test", "Folder (Syncthing)", "Folder (Syncthing)"))
+        addActivity("org.classicbudget.patch.ConflictReviewActivity", addString("cb_conflicts", "Sync conflicts", "Konflikty synchronizacji"))
     }
 }
 
@@ -106,21 +109,9 @@ private fun MutableMethod.beforeLabelled(index: Int, smali: String, original: St
 
 private fun smaliString(s: String) = s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
 
-@Suppress("unused")
-val syncPatch = bytecodePatch(
-    name = "Sync: Koofr, WebDAV and Syncthing folder",
-    description = "Adds a sync chooser to the first screen and \"Change sync method\" to Plus settings: Dropbox " +
-        "(unchanged), Koofr / any WebDAV server, or a folder synced by Syncthing. Writes are journaled and " +
-        "published atomically; conflicting edits are kept for review instead of being silently dropped. " +
-        "Meant as a fallback when Dropbox is unavailable: copy the budget folder there and choose it. With " +
-        "\"Production edition\" any folder works; the TEST app only accepts folders inside YNAB4_PLUS_TEST. Also turns off the app's crash reporting (it would send sync errors to the " +
-        "original vendor).",
-    default = false,
-) {
-    compatibleWith(COMPATIBILITY_YNAB_CLASSIC)
-    dependsOn(syncResourcesPatch, captureSyncConflicts)
+internal val syncProfilePatch = bytecodePatch {
+    dependsOn(profileResourcesPatch)
     extendWith("extensions/extension.mpe")
-
     execute {
         // A delayed old-profile SYNC must never create an empty database after a reset.
         cls("$Y/core/cloud/SyncService;").method("onHandleIntent", "(Landroid/content/Intent;)V").addInstructions(
@@ -143,11 +134,8 @@ val syncPatch = bytecodePatch(
             m.replaceInstruction(i + 1, "invoke-direct {v$r}, $P/BackendSelector;-><init>()V")
         }
 
-        // 2. Application start: "change sync" reset process + no vendor crash reporting.
+        // The reset process must start without opening the old budget database or sync provider.
         cls("$Y/app/NewUIApp;").method("onCreate", "()V").let { m ->
-            val crash = m.single("crash reporting init") { it.calls("Lb/a/a/a/c;", "a", "(Landroid/content/Context;[Lb/a/a/a/i;)Lb/a/a/a/c;") }
-            if (m.insns().getOrNull(crash + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT) throw IllegalStateException("crash init result used")
-            m.replaceInstruction(crash, "nop")
             m.addInstructions(
                 0,
                 """
@@ -159,6 +147,26 @@ val syncPatch = bytecodePatch(
                     nop
                 """,
             )
+        }
+    }
+}
+
+@Suppress("unused")
+val syncPatch = bytecodePatch(
+    name = "Sync: Koofr, WebDAV and Syncthing folder",
+    description = "Adds Koofr / WebDAV and local sync folders to the sync chooser. Writes are journaled and " +
+        "published atomically; conflicting edits are kept for review. Also turns off vendor crash reporting.",
+    default = false,
+) {
+    compatibleWith(COMPATIBILITY_YNAB_CLASSIC)
+    dependsOn(syncProfilePatch, syncResourcesPatch, captureSyncConflicts)
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        cls("$Y/app/NewUIApp;").method("onCreate", "()V").let { m ->
+            val crash = m.single("crash reporting init") { it.calls("Lb/a/a/a/c;", "a", "(Landroid/content/Context;[Lb/a/a/a/i;)Lb/a/a/a/c;") }
+            if (m.insns().getOrNull(crash + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT) throw IllegalStateException("crash init result used")
+            m.replaceInstruction(crash, "nop")
         }
 
         // 3. Sync errors: private diagnostic instead of the vendor crash log.

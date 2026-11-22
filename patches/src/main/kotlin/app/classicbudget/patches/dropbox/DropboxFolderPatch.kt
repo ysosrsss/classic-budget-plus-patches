@@ -1,17 +1,42 @@
 package app.classicbudget.patches.dropbox
 
 import app.classicbudget.patches.shared.Constants.COMPATIBILITY_YNAB_CLASSIC
+import app.classicbudget.patches.alongside.constEdition
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val ACCESSOR = "Lcom/youneedabudget/ynab/core/cloud/z;"
 private const val EXTENSION = "Lapp/classicbudget/extension/DropboxFolder;"
+private const val PROFILE = "Lorg/classicbudget/patch/DropboxProfile;"
+
+internal fun dropboxPathAllowed(value: String?): Boolean {
+    val path = value.orEmpty().trim().trimEnd('/')
+    return path.length <= 300 && path.none { it < ' ' || it in "\\\"%:" } &&
+        path.trimStart('/').split('/').none { it == "." || it == ".." } && !path.contains("//")
+}
+
+internal fun BytecodePatchContext.setDropboxPreset(value: String) {
+    val method = mutableClassDefBy(PROFILE).methods.single { it.name == "initialFolder" }
+    val instructions = method.implementation!!.instructions.toList()
+    val index = instructions.indexOfFirst { it.opcode == Opcode.CONST_STRING }
+    val register = (instructions[index] as OneRegisterInstruction).registerA
+    method.replaceInstruction(index, "const-string v$register, \"${value.trim().trim('/')}\"")
+}
+
+private fun BytecodePatchContext.dropboxPreset(): String {
+    val method = mutableClassDefBy(PROFILE).methods.single { it.name == "initialFolder" }
+    val instruction = method.implementation!!.instructions.first { it.opcode == Opcode.CONST_STRING } as ReferenceInstruction
+    return (instruction.reference as StringReference).string
+}
 
 /** The Dropbox provider's accessor getter: the class holding the "dropboxSettings" preferences. */
 internal object DropboxProviderFingerprint : Fingerprint(
@@ -21,10 +46,8 @@ internal object DropboxProviderFingerprint : Fingerprint(
 @Suppress("unused")
 val dropboxFolderPatch = bytecodePatch(
     name = "Dropbox budget folder",
-    description = "Use a Dropbox folder of your choice as the place where the app looks for budgets " +
-        "(the folder that holds .ynabSettings.yroot). The original only looks at the top of Dropbox and in /YNAB. " +
-        "Nothing outside the chosen folder is read or written. TEST app: ON with a TEST folder (e.g. YNAB4_PLUS_TEST). " +
-        "Production app (\"Production edition\" ON): OFF.",
+    description = "Legacy option for the isolated TEST app and older Dropbox configurations. " +
+        "YNAB Plus includes its folder selector in Production edition.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_YNAB_CLASSIC)
@@ -37,11 +60,7 @@ val dropboxFolderPatch = bytecodePatch(
         description = "Dropbox folder with .ynabSettings.yroot, written WITHOUT a leading slash, for example Budgets " +
             "or YNAB4_PLUS_TEST. Empty = original behaviour (top of Dropbox and /YNAB).",
         required = false,
-    ) { value ->
-        val v = value ?: ""
-        !v.startsWith("/") && !v.startsWith("\\") && !v.contains("..") && !v.contains("\"") && !v.contains(":") &&
-            v.none { it < ' ' } && v.length <= 300
-    }
+    ) { value -> dropboxPathAllowed(value) }
 
     execute {
         // 1. The chosen folder becomes the extension's constant.
@@ -52,7 +71,21 @@ val dropboxFolderPatch = bytecodePatch(
             method.replaceInstruction(index, "const-string v$register, \"${(folder ?: "").replace("\\", "/")}\"")
         }
 
-        // 2. Every accessor the provider hands out is wrapped (all return points of its getter).
+    }
+
+    finalize {
+        if (!constEdition()) {
+            // Existing saved Morphe options seed the production profile without wrapping Dropbox twice.
+            val legacy = folder.orEmpty().trim().trim('/')
+            val preset = dropboxPreset()
+            if (preset.isNotEmpty() && legacy.isNotEmpty() && !preset.equals(legacy, ignoreCase = true)) {
+                throw IllegalStateException("Choose the Dropbox folder in Production edition or the legacy folder patch, using one path.")
+            }
+            if (preset.isEmpty() && legacy.isNotEmpty()) setDropboxPreset(legacy)
+            return@finalize
+        }
+
+        // TEST keeps the original accessor wrapper and confinement of its explicit test folder.
         val providerType = DropboxProviderFingerprint.originalClassDef.type
         mutableClassDefBy(providerType).methods.filter { it.returnType == ACCESSOR && it.parameterTypes.isEmpty() }
             .also { if (it.isEmpty()) throw IllegalStateException("Dropbox accessor getter not found") }

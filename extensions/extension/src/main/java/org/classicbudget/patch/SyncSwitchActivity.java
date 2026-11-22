@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -27,7 +28,18 @@ import org.json.*;
  * phone's registration file, as after a reinstall of the original app.
  */
 public final class SyncSwitchActivity extends Activity {
+    static final String DROPBOX_FOLDER = "dropbox-folder-change";
+    private DropboxFolderChoice folderChoice;
+
     static String tr(String en, String pl) { return PlusLang.tr(en, pl); }
+
+    static Intent dropboxFolderIntent(Context context) {
+        return new Intent(context, SyncSwitchActivity.class).putExtra(DROPBOX_FOLDER, true);
+    }
+
+    private boolean folderOnly() {
+        return getIntent().getBooleanExtra(DROPBOX_FOLDER, false) || !BackendSelector.alternateBackends(this);
+    }
 
     /** Not sent yet: one line per reason; empty = safe to switch. */
     static java.util.List<String> pending(android.content.Context c) {
@@ -37,14 +49,18 @@ public final class SyncSwitchActivity extends Activity {
             out.add(tr("A device transfer is in progress.", "Trwa przejmowanie miejsca urządzenia."));
         }
         for (String name : c.databaseList()) {
-            if (!name.contains("#") || name.endsWith("-journal") || name.endsWith("-wal") || name.endsWith("-shm")) continue;
+            if (!SyncLifecycle.budgetDatabaseName(name)) continue;
             try {
                 SQLiteDatabase db = SQLiteDatabase.openDatabase(c.getDatabasePath(name).getPath(), null, SQLiteDatabase.OPEN_READONLY);
                 try {
                     int n = 0;
                     for (String table : new String[]{"txnTable", "scheduledTxnTable", "payeeTable", "payeeLocationsTable", "cbBudgetOutbox"}) {
-                        try { Cursor cur = db.rawQuery("SELECT COUNT(*) FROM " + table + " WHERE synced = 0", null); try { if (cur.moveToFirst()) n += cur.getInt(0); } finally { cur.close(); } }
-                        catch (RuntimeException noColumn) { }
+                        try (Cursor columns = db.rawQuery("PRAGMA table_info(" + table + ")", null)) {
+                            if (!columns.moveToFirst()) continue;
+                        }
+                        try (Cursor rows = db.rawQuery("SELECT COUNT(*) FROM " + table + " WHERE synced = 0", null)) {
+                            if (rows.moveToFirst()) n += rows.getInt(0);
+                        }
                     }
                     if (n > 0) out.add(tr("Changes not synced yet: ", "Niezsynchronizowane zmiany: ") + n);
                     try {
@@ -75,39 +91,81 @@ public final class SyncSwitchActivity extends Activity {
 
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        setTitle(tr("Change sync method", "Zmień synchronizację"));
+        boolean changeFolder = folderOnly();
+        setTitle(changeFolder ? tr("Dropbox folder", "Folder Dropbox") : tr("Change sync method", "Zmień synchronizację"));
         LinearLayout l = new LinearLayout(this); l.setOrientation(LinearLayout.VERTICAL);
         int pad = (int) (24 * getResources().getDisplayMetrics().density); l.setPadding(pad, pad, pad, pad);
         String chosen = BackendSelector.chosen();
+        boolean dropbox = chosen == null || BackendSelector.DROPBOX.equals(chosen);
+        if (changeFolder && (!dropbox || PlusEdition.TEST_ONLY)) {
+            new AlertDialog.Builder(this).setMessage(tr("Open a production Dropbox profile first.", "Najpierw otwórz produkcyjny profil Dropbox."))
+                .setPositiveButton("OK", (d, w) -> finish()).setOnCancelListener(d -> finish()).show();
+            return;
+        }
         TextView now = new TextView(this); now.setTextSize(17); now.setContentDescription("switch-current");
-        now.setText(tr("Current: ", "Obecnie: ") + (chosen == null ? tr("not connected", "brak połączenia") : BackendChooserActivity.label(chosen)));
+        String currentFolder = changeFolder ? DropboxProfile.folder() : null;
+        now.setText(tr("Current: ", "Obecnie: ") + (changeFolder ? ("/".equals(currentFolder) ? DropboxFolderChoice.defaultLabel() : currentFolder)
+            : (chosen == null ? tr("not connected", "brak połączenia") : BackendChooserActivity.label(chosen))));
         l.addView(now);
         TextView info = new TextView(this);
-        info.setText(tr("\nThis phone forgets its local copy of the budget and the current connection, then the app starts again and you choose a new sync method. "
+        info.setText(changeFolder ? tr("\nThe app reloads the budgets from the selected location. Your Dropbox sign-in is kept.",
+            "\nAplikacja wczyta budżety z wybranego położenia. Logowanie do Dropboxa zostanie.")
+            : tr("\nThis phone forgets its local copy of the budget and the current connection, then the app starts again and you choose a new sync method. "
             + "The budget itself on the server or in the folder is not changed. Plus settings (language, display, rules, reports) are kept.\n\n"
             + "Allowed only when everything has been sent.",
             "\nTelefon zapomni lokalną kopię budżetu i obecne połączenie, potem aplikacja uruchomi się od nowa i wybierzesz nowy sposób synchronizacji. "
             + "Sam budżet na serwerze ani w folderze się nie zmienia. Ustawienia Plus (język, wygląd, reguły, raporty) zostają.\n\n"
             + "Możliwe tylko wtedy, gdy wszystko zostało wysłane."));
         l.addView(info);
+        String staged = DropboxProfile.pendingFolder(this);
+        if (changeFolder) {
+            folderChoice = new DropboxFolderChoice(this, staged == null ? currentFolder : staged, staged == null,
+                "switch-dropbox-folder", state);
+            l.addView(folderChoice);
+        }
         final java.util.List<String> pending = pending(this);
         TextView status = new TextView(this); status.setTextSize(15); status.setContentDescription("switch-status");
         StringBuilder s = new StringBuilder("\n");
         if (pending.isEmpty()) s.append(tr("✓ Nothing is waiting to be sent.", "✓ Nic nie czeka na wysłanie."));
         else { s.append(tr("Not possible yet — first sync (open the budget with a connection):", "Jeszcze niemożliwe — najpierw zsynchronizuj (otwórz budżet przy połączeniu):")); for (String p : pending) s.append("\n• ").append(p); }
         status.setText(s); l.addView(status);
-        Button go = new Button(this); go.setText(tr("Change sync method", "Zmień synchronizację")); go.setContentDescription("switch-go"); go.setEnabled(pending.isEmpty());
+        Button go = new Button(this);
+        go.setText(changeFolder ? (staged == null ? tr("Change folder", "Zmień folder") : tr("Resume folder change", "Dokończ zmianę folderu"))
+            : tr("Change sync method", "Zmień synchronizację"));
+        go.setContentDescription("switch-go"); go.setEnabled(pending.isEmpty());
         go.setOnClickListener(new View.OnClickListener() { public void onClick(View v) { confirm(); } });
         l.addView(go);
+        l.setFocusableInTouchMode(true);
+        l.requestFocus();
+        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         ScrollView scroll = new ScrollView(this); scroll.addView(l); setContentView(scroll);
     }
 
+    @Override protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        if (folderChoice != null) folderChoice.save(state);
+    }
+
     void confirm() {
-        new AlertDialog.Builder(this).setTitle(tr("Change sync method?", "Zmienić synchronizację?"))
-            .setMessage(tr("The local copy of the budget on this phone will be removed and the app restarts. Continue?", "Lokalna kopia budżetu na tym telefonie zostanie usunięta, a aplikacja uruchomi się ponownie. Kontynuować?"))
+        boolean changeFolder = folderOnly();
+        String path = changeFolder ? folderChoice.selectedFolder() : null;
+        if (changeFolder && (path == null || path.equalsIgnoreCase(DropboxProfile.folder()))) {
+            folderChoice.showError(path == null ? tr("Enter a valid Dropbox folder path.", "Wpisz poprawną ścieżkę folderu Dropbox.")
+                : tr("This folder is already selected.", "Ten folder jest już wybrany."));
+            return;
+        }
+        String destination = "/".equals(path) ? tr("the default Dropbox location", "domyślnego położenia Dropbox") : path;
+        new AlertDialog.Builder(this).setTitle(changeFolder ? tr("Change Dropbox folder?", "Zmienić folder Dropbox?") : tr("Change sync method?", "Zmienić synchronizację?"))
+            .setMessage(changeFolder ? tr("The app will restart and load the budgets from ", "Aplikacja uruchomi się ponownie i wczyta budżety z ") + destination
+                : tr("The local copy of the budget on this phone will be removed and the app restarts. Continue?", "Lokalna kopia budżetu na tym telefonie zostanie usunięta, a aplikacja uruchomi się ponownie. Kontynuować?"))
             .setPositiveButton(tr("Change", "Zmień"), new DialogInterface.OnClickListener() { public void onClick(DialogInterface d, int w) {
                 if (!pending(SyncSwitchActivity.this).isEmpty()) { recreate(); return; }   // re-check right before
+                if (changeFolder && !DropboxProfile.stageFolder(SyncSwitchActivity.this, path)) {
+                    folderChoice.showError(tr("Could not save the folder change.", "Nie udało się zapisać zmiany folderu."));
+                    return;
+                }
                 Intent reset = new Intent(SyncSwitchActivity.this, SyncResetActivity.class).putExtra("pid", android.os.Process.myPid());
+                reset.putExtra(DROPBOX_FOLDER, changeFolder);
                 reset.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(reset);
                 finishAffinity();

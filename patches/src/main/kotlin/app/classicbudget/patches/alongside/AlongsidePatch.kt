@@ -141,7 +141,7 @@ val installAlongsidePatch = bytecodePatch(
 }
 
 /** PlusEdition.edition() as patched so far: true = TEST, false = production. */
-private fun app.morphe.patcher.patch.BytecodePatchContext.constEdition(): Boolean {
+internal fun app.morphe.patcher.patch.BytecodePatchContext.constEdition(): Boolean {
     val method = mutableClassDefBy("Lorg/classicbudget/patch/PlusEdition;").methods.single { it.name == "edition" }
     val insn = method.implementation!!.instructions.single { it.opcode == Opcode.CONST_4 }
     return (insn as com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction).narrowLiteral != 0

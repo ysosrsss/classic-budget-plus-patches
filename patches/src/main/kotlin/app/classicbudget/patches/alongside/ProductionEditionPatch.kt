@@ -1,9 +1,13 @@
 package app.classicbudget.patches.alongside
 
 import app.classicbudget.patches.shared.Constants.COMPATIBILITY_YNAB_CLASSIC
+import app.classicbudget.patches.dropbox.dropboxPathAllowed
+import app.classicbudget.patches.dropbox.setDropboxPreset
+import app.classicbudget.patches.sync.syncProfilePatch
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.stringOption
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -61,16 +65,25 @@ private val productionManifestPatch = resourcePatch {
 val productionEditionPatch = bytecodePatch(
     name = "Production edition",
     description = "ON = the production app \"$PRODUCTION_LABEL\" ($PRODUCTION_PACKAGE) for your real budget; OFF = the TEST app. " +
-        "Needs \"Install alongside the original\" ON. For production keep \"Dropbox budget folder\" OFF (the app then looks in /YNAB " +
-        "like the original); patching stops with an error if a TEST folder is set. Budgeting and the schedule editor work on every " +
-        "budget and the orange TEST bar is gone. Uninstall an older TEST app with this package first, or production inherits its data.",
+        "Includes the Dropbox folder selector before sign-in and in Plus settings. " +
+        "Budgeting and the schedule editor work on every budget.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_YNAB_CLASSIC)
-    dependsOn(installAlongsidePatch, productionManifestPatch)
+    dependsOn(installAlongsidePatch, productionManifestPatch, syncProfilePatch)
     extendWith("extensions/extension.mpe")
 
+    val initialFolder by stringOption(
+        key = "initialDropboxFolder",
+        default = "",
+        title = "Initial Dropbox folder",
+        description = "Optional path to the folder containing .ynabSettings.yroot. Empty uses Dropbox's original root and /YNAB. " +
+            "Keep the same path when upgrading a previously patched custom-folder installation.",
+        required = false,
+    ) { value -> dropboxPathAllowed(value) }
+
     execute {
+        setDropboxPreset(initialFolder.orEmpty())
         // 1. Broadcast actions in code: the TEST namespace the alongside patch wrote becomes the production one.
         var renamed = 0
         classDefForEach { classDef ->

@@ -10,6 +10,15 @@ import java.io.File;
 public final class SyncLifecycle {
     private SyncLifecycle() { }
 
+    static boolean budgetDatabaseName(String name) {
+        return name.contains("#") && !name.endsWith("-journal") && !name.endsWith("-wal") && !name.endsWith("-shm");
+    }
+
+    static boolean hasBudgetDatabase(Context context) {
+        for (String name : context.databaseList()) if (budgetDatabaseName(name)) return true;
+        return false;
+    }
+
     static void cancelOldSync(Context context) throws Exception {
         // Ask the original helper for its exact intent, including Alongside's action rewrite.
         Class<?> helper = Class.forName("com.youneedabudget.ynab.core.cloud.o");
@@ -26,7 +35,7 @@ public final class SyncLifecycle {
 
     /** Only SYNC needs an existing database; discovery and IMPORT_FULL still create it normally. */
     public static boolean allowIntent(Context context, Intent intent) {
-        if (intent == null) return false;
+        if (intent == null || DropboxProfile.pendingFolder(context) != null) return false;
         String action = intent.getAction();
         if (action == null || !(action.equals("com.youneedabudget.ynab.SYNC") ||
                 action.equals(context.getPackageName() + ".isolated.com.youneedabudget.ynab.SYNC"))) return true;

@@ -66,16 +66,27 @@ public class PlusSettingsActivity extends Activity {
         } else {
             shortcut(layout,tr("Sync conflicts","Konflikty synchronizacji"),"plus-conflicts","org.classicbudget.patch.ConflictReviewActivity");
         }
-        // Sync method switch lives in the backend module; shown only when that module is present.
-        try {
-            final Class<?> sw = Class.forName("org.classicbudget.patch.SyncSwitchActivity");
-
-            note(layout, tr("Connecting or opening a linked budget can register this phone and upload device metadata before the first transaction is edited. This also applies to a future non-TEST build.",
-                "Podłączenie lub otwarcie powiązanego budżetu może zarejestrować telefon i wysłać metadane urządzenia przed pierwszą edycją transakcji. Dotyczy to także przyszłej wersji bez ograniczenia TEST."));
-            Button change = new Button(this); change.setText(tr("Change sync method…", "Zmień synchronizację…")); change.setContentDescription("plus-switch-sync");
-            change.setOnClickListener(new View.OnClickListener() { public void onClick(View v) { startActivity(new android.content.Intent(PlusSettingsActivity.this, sw)); } });
-            layout.addView(change);
-        } catch (ClassNotFoundException absent) { }
+        android.content.Intent sw = new android.content.Intent().setClassName(getPackageName(), "org.classicbudget.patch.SyncSwitchActivity");
+        if (BackendSelector.hasActivity(this, SyncSwitchActivity.class)) {
+            boolean alternate = BackendSelector.alternateBackends(this);
+            String backend = BackendSelector.chosen();
+            note(layout, tr("Opening a linked budget can register this phone and send its device metadata.",
+                "Otwarcie powiązanego budżetu może zarejestrować ten telefon i wysłać jego metadane."));
+            if (!PlusEdition.TEST_ONLY && (backend == null || BackendSelector.DROPBOX.equals(backend))) {
+                Button folder = new Button(this);
+                folder.setText(tr("Dropbox folder…", "Folder Dropbox…"));
+                folder.setContentDescription("plus-dropbox-folder");
+                folder.setOnClickListener(v -> startActivity(SyncSwitchActivity.dropboxFolderIntent(this)));
+                layout.addView(folder);
+            }
+            if (alternate) {
+                Button change = new Button(this);
+                change.setText(tr("Change sync method…", "Zmień synchronizację…"));
+                change.setContentDescription("plus-switch-sync");
+                change.setOnClickListener(v -> startActivity(sw));
+                layout.addView(change);
+            }
+        }
         shortcut(layout, tr("Diagnostics…", "Diagnostyka…"), "plus-diagnostics", "org.classicbudget.patch.DiagnosticsActivity");
         String places = tr("Payee places (GPS)…", "Miejsca płatników (GPS)…");
         shortcut(layout, places, places, "org.classicbudget.patch.PayeePlacesActivity");

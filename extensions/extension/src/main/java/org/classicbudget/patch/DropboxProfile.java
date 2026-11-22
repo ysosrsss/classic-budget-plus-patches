@@ -10,12 +10,14 @@ import com.youneedabudget.ynab.core.cloud.z;
 /**
  * The original Dropbox provider (OAuth, SDK, adapter) unchanged. In a TEST
  * build every path is confined below TEST_ROOT in the user's Dropbox, so the
- * real budget folder can never be listed, read or written. A release build
- * sets TEST_ROOT to null and uses the original accessor directly.
+ * real budget folder can never be listed, read or written. Production can
+ * use the original accessor directly or root it under a selected folder.
  */
 public final class DropboxProfile implements c {
     /** Replaced by the build script; null means no confinement (release). */
     static final String TEST_ROOT = null;   // Morphe: see "Dropbox budget folder"
+    static final String FOLDER = "dropbox_folder";
+    private static final String PENDING = "pending_dropbox_folder";
     private final c original;
     private z guarded;
 
@@ -33,12 +35,53 @@ public final class DropboxProfile implements c {
         if (TEST_ROOT == null) return true;
         return folder.equals(TEST_ROOT) || folder.startsWith(TEST_ROOT + "/");
     }
-    public static String folder() { String f = BackendSelector.prefs().getString("dropbox_folder", null); return folderAllowed(f) ? f : null; }
+    /** The production patch can provide a starting folder, including the legacy patch's setting. */
+    static String initialFolder() { return ""; }
+
+    static String normalize(String folder) {
+        String path = folder.trim();
+        if (!path.startsWith("/")) path = "/" + path;
+        while (path.length() > 1 && path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        return folderAllowed(path) ? path : null;
+    }
+
+    public static String folder() {
+        String saved = BackendSelector.prefs().getString(FOLDER, null);
+        if (folderAllowed(saved)) return saved;
+        if (PlusEdition.TEST_ONLY) return null;
+        String initial = normalize(initialFolder());
+        if (initial == null) throw new IllegalStateException("INVALID_INITIAL_DROPBOX_FOLDER");
+        return initial;
+    }
+
+    static String pendingFolder(Context context) {
+        return context.getSharedPreferences(BackendSelector.PREFS, 0).getString(PENDING, null);
+    }
+
+    static boolean stageFolder(Context context, String folder) {
+        if (PlusEdition.TEST_ONLY || !folderAllowed(folder)) return false;
+        return context.getSharedPreferences(BackendSelector.PREFS, 0).edit().putString(PENDING, folder).commit();
+    }
+
+    static boolean cancelFolder(Context context) {
+        return context.getSharedPreferences(BackendSelector.PREFS, 0).edit().remove(PENDING).commit();
+    }
+
+    static boolean finishFolder(Context context, String folder) {
+        if (!folderAllowed(folder) || !folder.equals(pendingFolder(context))) return false;
+        return context.getSharedPreferences(BackendSelector.PREFS, 0).edit().putString(FOLDER, folder)
+            .putString("kind", BackendSelector.DROPBOX).remove(PENDING).commit();
+    }
+
     public static void chooseFolder(String folder) {
         if (!folderAllowed(folder)) throw new IllegalArgumentException("DROPBOX_FOLDER_NOT_ALLOWED");
         String old = folder();
-        if (old != null && !old.equals(folder) && BackendSelector.locked()) throw new IllegalStateException("PROFILE_LOCKED");
-        if (!BackendSelector.prefs().edit().putString("dropbox_folder", folder).commit()) throw new IllegalStateException("PROFILE_PERSIST_FAILED");
+        if (BackendSelector.locked() && (old == null || !old.equalsIgnoreCase(folder))) throw new IllegalStateException("PROFILE_LOCKED");
+        if (!BackendSelector.prefs().edit().putString(FOLDER, folder).commit()) throw new IllegalStateException("PROFILE_PERSIST_FAILED");
+    }
+
+    static synchronized void pinFolder() {
+        if (!PlusEdition.TEST_ONLY && !BackendSelector.prefs().contains(FOLDER)) chooseFolder(folder());
     }
 
     static String root() {
@@ -57,23 +100,32 @@ public final class DropboxProfile implements c {
     public boolean b() { return original.b(); }
 
     public synchronized z c() {
+        if (pendingFolder(BackendSelector.context()) != null) throw new IllegalStateException("DROPBOX_FOLDER_CHANGE_PENDING");
+        pinFolder();
         z accessor = original.c();
         if (accessor == null) throw new IllegalStateException("Dropbox is not linked");
         String root = root();
         if (root == null) return accessor;
-        if (guarded == null || ((RootGuard) guarded).delegate != accessor) guarded = new RootGuard(accessor, root);
+        if (guarded == null || ((RootGuard) guarded).delegate != accessor || !((RootGuard) guarded).root.equals(root))
+            guarded = new RootGuard(accessor, root, !PlusEdition.TEST_ONLY);
         return guarded;
     }
 
-    /** Maps the app's logical "/" onto a fixed TEST folder and rejects everything else. */
+    /** Maps the app's logical "/" into one Dropbox folder and validates returned paths. */
     static final class RootGuard implements z {
         final z delegate; final String root;
-        RootGuard(z delegate, String root) { this.delegate = delegate; this.root = root; }
+        final boolean allowDelete;
+        RootGuard(z delegate, String root, boolean allowDelete) {
+            this.delegate = delegate;
+            this.root = root;
+            this.allowDelete = allowDelete;
+        }
 
-        static String clean(File file) throws IOException {
+        String clean(File file) throws IOException {
             String path = file.getPath().replace('\\', '/');
             if (!path.startsWith("/")) path = "/" + path;
-            if (path.indexOf('%') >= 0 || path.matches("(?s).*[\\x00-\\x1f].*")) throw new IOException("TEST_PATH_REJECTED");
+            if ((!allowDelete && path.indexOf('%') >= 0) || path.matches("(?s).*[\\x00-\\x1f].*"))
+                throw new IOException("DROPBOX_PATH_REJECTED");
             for (String part : path.split("/", -1)) if (part.equals(".") || part.equals("..")) throw new IOException("TEST_PATH_REJECTED");
             while (path.contains("//")) path = path.replace("//", "/");
             if (path.length() > 1 && path.endsWith("/")) path = path.substring(0, path.length() - 1);
@@ -81,6 +133,7 @@ public final class DropboxProfile implements c {
         }
         File remote(File file) throws IOException { String p = clean(file); return new File(p.equals("/") ? root : root + p); }
         File local(File file) throws IOException {
+            if (file == null) return null;
             String p = clean(file), lower = p.toLowerCase(Locale.ROOT), prefix = root.toLowerCase(Locale.ROOT);
             if (lower.equals(prefix)) return new File("/");
             if (!lower.startsWith(prefix + "/")) throw new IOException("TEST_RESULT_OUTSIDE_ROOT");
@@ -94,11 +147,22 @@ public final class DropboxProfile implements c {
         public void b(File f, String text) throws IOException { delegate.b(remote(f), text); }
         public i c(File f) throws IOException { return local(delegate.c(remote(f))); }
         public List<File> c(File f, String suffix) throws IOException {
-            List<File> out = new ArrayList<File>(); for (File e : delegate.c(remote(f), suffix)) out.add(local(e)); return out;
+            List<File> entries = delegate.c(remote(f), suffix);
+            if (entries == null) return null;
+            List<File> result = new ArrayList<>();
+            for (File entry : entries) result.add(local(entry));
+            return result;
         }
         public List<i> d(File f, String suffix) throws IOException {
-            List<i> out = new ArrayList<i>(); for (i e : delegate.d(remote(f), suffix)) out.add(local(e)); return out;
+            List<i> entries = delegate.d(remote(f), suffix);
+            if (entries == null) return null;
+            List<i> result = new ArrayList<>();
+            for (i entry : entries) result.add(local(entry));
+            return result;
         }
-        public void d(File f) throws IOException { clean(f); throw new IOException("TEST_DELETE_DISABLED"); }
+        public void d(File f) throws IOException {
+            if (!allowDelete) throw new IOException("TEST_DELETE_DISABLED");
+            delegate.d(remote(f));
+        }
     }
 }

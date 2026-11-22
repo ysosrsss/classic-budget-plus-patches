@@ -19,15 +19,25 @@ public final class BackendSelector implements c {
     static Context context() { return com.youneedabudget.ynab.core.app.d.i(); }
     static SharedPreferences prefs() { return context().getSharedPreferences(PREFS, 0); }
     public static String chosen() { return prefs().getString("kind", null); }
+    static boolean alternateBackends(Context context) {
+        return hasActivity(context, FolderSetupActivity.class);
+    }
+
+    static boolean hasActivity(Context context, Class<?> activity) {
+        try {
+            // resolveActivity returns the declared component of an explicit intent even when it is absent.
+            return context.getPackageManager().getActivityInfo(new ComponentName(context, activity), 0).enabled;
+        } catch (android.content.pm.PackageManager.NameNotFoundException unavailable) {
+            return false;
+        }
+    }
     /**
      * Locked once a local budget exists: its device ID and knowledge belong to
      * the chosen backend. Linking alone does not lock (a rejected or expired
      * login must still allow choosing another backend).
      */
     public static boolean locked() {
-        if (chosen() == null) return false;
-        for (String name : context().databaseList()) if (name.contains("#") && !name.endsWith("-journal")) return true;
-        return false;
+        return SyncLifecycle.hasBudgetDatabase(context());
     }
 
     /** Persist the user's choice; refuses a different backend for a locked profile. */
@@ -46,6 +56,7 @@ public final class BackendSelector implements c {
         try {
             c dropbox = create(DROPBOX);
             if (!dropbox.b()) return null;
+            DropboxProfile.pinFolder();
             prefs().edit().putString("kind", DROPBOX).commit();
             delegate = dropbox; kind = DROPBOX;
             return DROPBOX;
@@ -62,6 +73,7 @@ public final class BackendSelector implements c {
     }
 
     synchronized c current() {
+        if (DropboxProfile.pendingFolder(context()) != null) return null;
         String value = chosen();
         if (value == null) value = adoptLinkedDropbox();
         if (value == null) return null;

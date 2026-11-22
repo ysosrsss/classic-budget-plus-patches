@@ -23,9 +23,8 @@ public final class PlusEdition {
 
     /**
      * Production edition: the budget open on the budget screen looks like a test one (its name has
-     * TEST or COPY). This happens when the production app was installed over an older TEST app (same
-     * package, its data stays) or patched with a TEST Dropbox folder. Asks once per budget and app run;
-     * "Don't ask again" remembers that budget. Nothing is changed in the budget.
+     * TEST or COPY). An isolated copy can be opened intentionally from the Dropbox folder selector.
+     * Confirm once per budget, since the same production app can also write to that copy.
      */
     public static void checkBudget(final android.app.Activity activity) {
         if (TEST_ONLY || activity == null) return;
@@ -40,15 +39,10 @@ public final class PlusEdition {
             android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(activity)
                 .setTitle(PlusLang.tr("Test budget in YNAB Plus?", "Budżet testowy w YNAB Plus?"))
                 .setMessage(PlusLang.tr(
-                    "\"" + name + "\" looks like a TEST or COPY budget, but this is the production app \"YNAB Plus\".\n\n"
-                        + "Usually it means YNAB Plus was installed over an older TEST app (its data stayed) or patched with "
-                        + "a TEST Dropbox folder. Fix: uninstall YNAB Plus and patch it again with \"Dropbox budget folder\" OFF.\n\n"
-                        + "If this budget really belongs here, choose \"It's fine\".",
-                    "„" + name + "” wygląda na budżet TEST lub COPY, a to jest aplikacja produkcyjna „YNAB Plus”.\n\n"
-                        + "Zwykle znaczy to, że YNAB Plus zainstalowano na starszą aplikację testową (zostały jej dane) albo "
-                        + "nałożono łatki z folderem Dropboxa TEST. Naprawa: odinstaluj YNAB Plus i nałóż łatki ponownie "
-                        + "z „Dropbox budget folder” WYŁ.\n\n"
-                        + "Jeśli ten budżet naprawdę ma tu być, wybierz „W porządku”."))
+                    "\"" + name + "\" looks like a TEST or COPY budget. YNAB Plus can sync changes to this copy. "
+                        + "Choose \"It's fine\" if you opened it intentionally.",
+                    "„" + name + "” wygląda na budżet TEST lub COPY. YNAB Plus może synchronizować zmiany w tej kopii. "
+                        + "Wybierz „W porządku”, jeśli otwarto ją celowo."))
                 .setPositiveButton(PlusLang.tr("Understood", "Rozumiem"), null)
                 .setNegativeButton(PlusLang.tr("It's fine", "W porządku"), (d, w) -> ui.edit().putBoolean("edition_ok:" + name, true).apply())
                 .create();
