@@ -4,7 +4,7 @@ Classic Budget Plus is an independent patch bundle for Morphe. It supports the Y
 
 ## Add to Morphe Manager
 
-Open Patch sources, add a remote source, and enter the URL of this repository. This repository is private. Use a GitHub token with read access to its contents in the Manager's GitHub PAT setting. Enter the token directly on your device. Enable pre-release patches for this source to see the initial test release.
+Open Patch sources, add a remote source, and enter the URL of this repository. This repository is private. Use a GitHub token with read access to its contents in the Manager's GitHub PAT setting. Enter the token directly on your device. The repository URL resolves to the `patches-bundle.json` manifest on `main`, which points to the current private preview.
 
 You can also download the `.mpp` from Releases and import it as a local source. Use the same Morphe installation and signing key as your existing app when applying an update.
 
