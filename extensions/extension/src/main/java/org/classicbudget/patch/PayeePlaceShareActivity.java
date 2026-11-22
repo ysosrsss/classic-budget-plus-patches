@@ -17,8 +17,8 @@ public final class PayeePlaceShareActivity extends Activity {
                     .putExtra(PayeePlaceEditorActivity.SHARE, text)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
             } else {
-                Toast.makeText(this, PlusLang.tr("Start moving a payee place in YNAB Plus first.",
-                    "Najpierw otwórz przenoszenie miejsca płatnika w YNAB Plus."), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, PlusLang.tr("Start moving a payee place in Classic Budget Plus first.",
+                    "Najpierw otwórz przenoszenie miejsca płatnika w Classic Budget Plus."), Toast.LENGTH_LONG).show();
             }
         }
         finish();

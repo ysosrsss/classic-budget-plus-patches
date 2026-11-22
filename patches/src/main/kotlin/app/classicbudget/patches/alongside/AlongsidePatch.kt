@@ -18,7 +18,7 @@ import app.classicbudget.patches.shared.PlusResources.retargetSettings
 
 /** Application ID of the copy installed next to the original. */
 internal const val ALONGSIDE_PACKAGE = "com.youneedabudget.ynab.app.market.plus.test"
-internal const val ALONGSIDE_LABEL = "YNAB Plus TEST"
+internal const val ALONGSIDE_LABEL = "Classic Budget Plus TEST"
 
 /** Broadcast actions used by the app. Namespaced so the two installed apps never wake each other. */
 private val ACTION_PREFIXES = listOf(
@@ -77,7 +77,7 @@ val installAlongsidePatch = bytecodePatch(
     description = "REQUIRED for both apps. Installs the patched app as its own app next to the original YNAB Classic " +
         "(the original stays untouched). Alone it makes the TEST app \"$ALONGSIDE_LABEL\" ($ALONGSIDE_PACKAGE, orange bar): " +
         "then also turn on \"Dropbox budget folder\" with a TEST folder such as YNAB4_PLUS_TEST. Together with " +
-        "\"Production edition\" it makes \"YNAB Plus\" for the real budget instead. Each app keeps its own local data " +
+        "\"Production edition\" it makes \"$PRODUCTION_LABEL\" for the real budget instead. Each app keeps its own local data " +
         "and registers as its own device in the budget.",
     default = false,
 ) {
@@ -133,7 +133,7 @@ val installAlongsidePatch = bytecodePatch(
         val folder = dropboxFolder()
         if (production && folder.uppercase().contains("TEST")) throw IllegalStateException(
             "Production edition with Dropbox budget folder \"$folder\": the production app would open the TEST budget. " +
-                "Turn \"Dropbox budget folder\" OFF (or leave its folder empty) for \"YNAB Plus\".")
+                "Turn \"Dropbox budget folder\" OFF (or leave its folder empty) for \"$PRODUCTION_LABEL\".")
         if (!production && folder.isEmpty()) throw IllegalStateException(
             "TEST app without a Dropbox budget folder: \"$ALONGSIDE_LABEL\" would open the real budget in /YNAB. " +
                 "Turn \"Dropbox budget folder\" ON with a TEST folder (e.g. YNAB4_PLUS_TEST), or turn \"Production edition\" ON for the real budget.")

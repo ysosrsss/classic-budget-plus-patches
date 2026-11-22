@@ -1,11 +1,10 @@
 group = "app.classicbudget"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "Classic Budget patches"
+        name = "Classic Budget Plus"
         description = "Patches for YNAB Classic (the YNAB 4 Android companion): usability fixes and optional modules"
-        source = "local (not published yet)"
+        source = "https://github.com/ysosrsss/classic-budget-plus-patches"
         author = "Classic Budget contributors"
         contact = "na"
         website = "na"
