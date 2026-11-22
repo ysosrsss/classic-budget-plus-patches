@@ -68,11 +68,12 @@ If you run into an issue, include your phone model, Android version and the step
 
 ## Community credits
 
-Classic Budget Plus grew out of seeing the r/ynab4 community get the Android app syncing again after Dropbox changes.
+Classic Budget Plus grew out of seeing the YNAB 4 community get the Android app syncing again after Dropbox changes. In April 2022, the app needed TLS 1.2. A separate wave of problems in 2026 brought another round of community fixes.
 
-- **u/boco_23** pointed out the Dropbox certificate change. [Original comment](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/o0ualv6/)
-- **u/kronicd** published a certificate update and later shared a patcher for the TLS fix. [Certificate update](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/o2j6sk2/) · [Patcher](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/odrpdqw/)
-- **u/Magoun** shared the compatibility fix that used Android's system trust store and cipher suites. [Dropbox compatibility fix](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/odpqthm/)
+- **u/kronicd** shared the TLS 1.2 patch in 2022, then a certificate update and a patcher in 2026. [2022 patch](https://www.reddit.com/r/ynab4/comments/u4rlma/comment/i55m5ts/) · [2026 certificate update](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/o2j6sk2/) · [2026 patcher](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/odrpdqw/)
+- **u/modrzew** compared the 2022 patched APK with the original and documented how to reproduce the fix. [Comparison and instructions](https://www.reddit.com/r/ynab/comments/u4bnmi/comment/i5m38l5/)
+- **u/boco_23** pointed out the Dropbox certificate change in 2026. [Original comment](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/o0ualv6/)
+- **u/Magoun** shared the 2026 compatibility fix that used Android's system trust store and cipher suites. [Dropbox compatibility fix](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/odpqthm/)
 
 Thanks also to everyone who reported the breakages and tested the fixes.
 
