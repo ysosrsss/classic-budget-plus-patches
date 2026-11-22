@@ -6,6 +6,7 @@ Classic Budget Plus brings more of the YNAB 4 desktop workflow to Android. Add t
 
 ## What it adds
 
+- **Faster startup.** Budget loading starts without the original splash screen's fixed two-second delay.
 - **Faster transaction entry.** Keep **Add transaction** visible after saving. Open the full **Add Transaction** screen with the **+** home-screen widget, or choose a compact amount layout in **Plus settings → Transaction form**.
 - **Reports.** See spending by category or payee, monthly trends, net worth, and income versus expenses. Open reports full screen, use the landscape income and expense table, and tap amounts to see the underlying transactions.
 - **Budgeting.** Edit budgeted amounts, move money between categories, add notes and see what's left to fund a monthly goal.
