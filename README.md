@@ -1,6 +1,6 @@
-# YNAB4 Plus patch bundles
+# Classic Budget Plus
 
-Independent patches for the YNAB 4 Android companion app, compatible with Morphe. Use your own original Android APK for version `3.4.1_classic`. The Releases page carries the `.mpp` bundle. The source builds the patches and their Android extension.
+Classic Budget Plus is an independent patch bundle for Morphe. It supports the YNAB 4 Android companion app. Use your own original Android APK for version `3.4.1_classic`. The Releases page carries the `.mpp` bundle. The source builds the patches and their Android extension.
 
 ## Add to Morphe Manager
 
