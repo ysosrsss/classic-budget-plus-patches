@@ -2,7 +2,7 @@
 
 Classic Budget Plus brings desktop-style reports, saved transaction filters and category budgeting to the YNAB 4 Android companion. It is an independent patch bundle for Morphe and installs as **YNAB Plus** alongside the original app.
 
-[Add to Morphe](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) · [Download v1.0.0](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0) · [Supported APK](#supported-apk)
+[Add to Morphe](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) · [Download the v1.0.0 MPP](https://github.com/ysosrsss/classic-budget-plus-patches/releases/download/v1.0.0/classic-budget-plus-v1.0.0-production.mpp) · [Release notes](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0)
 
 ## Screenshots
 
@@ -47,7 +47,11 @@ Check the APK with `Get-FileHash -Algorithm SHA256 .\YNAB_Classic.apk` on Window
 
 To change the folder later, open **Plus settings → Dropbox folder**. Once all changes have synced, YNAB Plus reloads the budgets from the selected location and keeps your Dropbox sign-in.
 
-This is a preview. See the [release notes](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0) for the test coverage.
+## Public preview
+
+The released bundle passed 14 offline Android 14 emulator checks covering an in-place update and Dropbox folder changes on an isolated budget copy. The maintainer reports that the app looks fine on their phone. Full phone-to-YNAB-Windows sync testing for this bundle is still pending. Try sync on a separate budget copy first.
+
+If you run into an issue, include your phone model, Android version and the steps to reproduce it. [Report an issue on GitHub](https://github.com/ysosrsss/classic-budget-plus-patches/issues).
 
 ## Build
 
