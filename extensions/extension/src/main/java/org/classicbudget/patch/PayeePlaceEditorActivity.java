@@ -66,8 +66,8 @@ public final class PayeePlaceEditorActivity extends Activity {
         map = button(page, tr("Open Google Maps", "Otwórz Mapy Google"), this::openMaps);
         map.setEnabled(false);
         TextView help = new TextView(this);
-        help.setText(tr("Press and hold the new spot in Maps. Share the pin to Classic Budget Plus or copy its coordinates and paste them below.",
-            "Przytrzymaj nowe miejsce w Mapach. Udostępnij pinezkę do Classic Budget Plus albo skopiuj jej współrzędne i wklej je poniżej."));
+        help.setText(tr("Press and hold the new spot in Maps. Share the pin to YNAB Plus or copy its coordinates and paste them below.",
+            "Przytrzymaj nowe miejsce w Mapach. Udostępnij pinezkę do YNAB Plus albo skopiuj jej współrzędne i wklej je poniżej."));
         page.addView(help);
         coordinates = new EditText(this);
         coordinates.setSingleLine(true);

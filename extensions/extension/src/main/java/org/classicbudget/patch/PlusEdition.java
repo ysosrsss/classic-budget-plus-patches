@@ -38,15 +38,15 @@ public final class PlusEdition {
             if (!upper.contains("TEST") && !upper.contains("COPY")) return;
             warned = name;
             android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(activity)
-                .setTitle(PlusLang.tr("Test budget in Classic Budget Plus?", "Budżet testowy w Classic Budget Plus?"))
+                .setTitle(PlusLang.tr("Test budget in YNAB Plus?", "Budżet testowy w YNAB Plus?"))
                 .setMessage(PlusLang.tr(
-                    "\"" + name + "\" looks like a TEST or COPY budget, but this is the production app \"Classic Budget Plus\".\n\n"
-                        + "Usually it means Classic Budget Plus was installed over an older TEST app (its data stayed) or patched with "
-                        + "a TEST Dropbox folder. Fix: uninstall Classic Budget Plus and patch it again with \"Dropbox budget folder\" OFF.\n\n"
+                    "\"" + name + "\" looks like a TEST or COPY budget, but this is the production app \"YNAB Plus\".\n\n"
+                        + "Usually it means YNAB Plus was installed over an older TEST app (its data stayed) or patched with "
+                        + "a TEST Dropbox folder. Fix: uninstall YNAB Plus and patch it again with \"Dropbox budget folder\" OFF.\n\n"
                         + "If this budget really belongs here, choose \"It's fine\".",
-                    "„" + name + "” wygląda na budżet TEST lub COPY, a to jest aplikacja produkcyjna „Classic Budget Plus”.\n\n"
-                        + "Zwykle znaczy to, że Classic Budget Plus zainstalowano na starszą aplikację testową (zostały jej dane) albo "
-                        + "nałożono łatki z folderem Dropboxa TEST. Naprawa: odinstaluj Classic Budget Plus i nałóż łatki ponownie "
+                    "„" + name + "” wygląda na budżet TEST lub COPY, a to jest aplikacja produkcyjna „YNAB Plus”.\n\n"
+                        + "Zwykle znaczy to, że YNAB Plus zainstalowano na starszą aplikację testową (zostały jej dane) albo "
+                        + "nałożono łatki z folderem Dropboxa TEST. Naprawa: odinstaluj YNAB Plus i nałóż łatki ponownie "
                         + "z „Dropbox budget folder” WYŁ.\n\n"
                         + "Jeśli ten budżet naprawdę ma tu być, wybierz „W porządku”."))
                 .setPositiveButton(PlusLang.tr("Understood", "Rozumiem"), null)

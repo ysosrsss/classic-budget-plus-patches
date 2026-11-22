@@ -12,14 +12,14 @@ import org.w3c.dom.Element
 
 /**
  * Production copy next to the TEST copy (077). "Install alongside the original" makes the TEST copy
- * (com.youneedabudget.ynab.app.market.plus.test, "Classic Budget Plus TEST"); this patch, applied on top of it,
+ * (com.youneedabudget.ynab.app.market.plus.test, "YNAB Plus TEST"); this patch, applied on top of it,
  * moves the result to its own application ID and label, so both copies and the original can be
  * installed at once. Everything the alongside patch namespaced with the TEST package (broadcast
  * actions in the manifest and in code, settings intents) follows, so the copies never wake each other.
  * In code, the Plus editors drop their TEST/COPY-only limit and the orange TEST bar.
  */
 internal const val PRODUCTION_PACKAGE = "com.youneedabudget.ynab.app.market.plus"
-internal const val PRODUCTION_LABEL = "Classic Budget Plus"
+internal const val PRODUCTION_LABEL = "YNAB Plus"
 private const val TEST_PREFIX = "$ALONGSIDE_PACKAGE.isolated."
 private const val PRODUCTION_PREFIX = "$PRODUCTION_PACKAGE.isolated."
 

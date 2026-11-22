@@ -18,7 +18,7 @@ import app.classicbudget.patches.shared.PlusResources.retargetSettings
 
 /** Application ID of the copy installed next to the original. */
 internal const val ALONGSIDE_PACKAGE = "com.youneedabudget.ynab.app.market.plus.test"
-internal const val ALONGSIDE_LABEL = "Classic Budget Plus TEST"
+internal const val ALONGSIDE_LABEL = "YNAB Plus TEST"
 
 /** Broadcast actions used by the app. Namespaced so the two installed apps never wake each other. */
 private val ACTION_PREFIXES = listOf(
