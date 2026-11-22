@@ -66,6 +66,16 @@ Built with help from Codex and Claude Code.
 
 If you run into an issue, include your phone model, Android version and the steps to reproduce it. [Report an issue on GitHub](https://github.com/ysosrsss/classic-budget-plus-patches/issues).
 
+## Community credits
+
+Classic Budget Plus grew out of seeing the r/ynab4 community get the Android app syncing again after Dropbox changes.
+
+- **u/boco_23** pointed out the Dropbox certificate change. [Original comment](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/o0ualv6/)
+- **u/kronicd** published a certificate update and later shared a patcher for the TLS fix. [Certificate update](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/o2j6sk2/) · [Patcher](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/odrpdqw/)
+- **u/Magoun** shared the compatibility fix that used Android's system trust store and cipher suites. [Dropbox compatibility fix](https://www.reddit.com/r/ynab4/comments/1qiokvb/comment/odpqthm/)
+
+Thanks also to everyone who reported the breakages and tested the fixes.
+
 ## Build
 
 Use Java 21, Android SDK Platform 36 and Build Tools 36. Configure the SDK through `ANDROID_HOME` or a local `local.properties`. Gradle reads GitHub Packages credentials from the user's Gradle configuration or the standard GitHub Actions environment. Run `gradlew.bat buildAndroid` on Windows or `./gradlew buildAndroid` on other platforms. This repository builds the production bundle by default. The output is under `patches/build/libs`.
