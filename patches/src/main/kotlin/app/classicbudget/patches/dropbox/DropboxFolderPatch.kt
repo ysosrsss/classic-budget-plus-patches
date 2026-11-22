@@ -1,6 +1,7 @@
 package app.classicbudget.patches.dropbox
 
 import app.classicbudget.patches.shared.Constants.COMPATIBILITY_YNAB_CLASSIC
+import app.classicbudget.patches.shared.PRODUCTION_ONLY
 import app.classicbudget.patches.alongside.constEdition
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -45,7 +46,7 @@ internal object DropboxProviderFingerprint : Fingerprint(
 
 @Suppress("unused")
 val dropboxFolderPatch = bytecodePatch(
-    name = "Dropbox budget folder",
+    name = if (PRODUCTION_ONLY) null else "Dropbox budget folder",
     description = "Legacy option for the isolated TEST app and older Dropbox configurations. " +
         "YNAB Plus includes its folder selector in Production edition.",
     default = false,

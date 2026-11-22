@@ -1,6 +1,7 @@
 package app.classicbudget.patches.alongside
 
 import app.classicbudget.patches.shared.Constants.COMPATIBILITY_YNAB_CLASSIC
+import app.classicbudget.patches.shared.PRODUCTION_ONLY
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -73,7 +74,7 @@ internal object DropboxAuthHandlersFingerprint : Fingerprint(
 
 @Suppress("unused")
 val installAlongsidePatch = bytecodePatch(
-    name = "Install alongside the original",
+    name = if (PRODUCTION_ONLY) null else "Install alongside the original",
     description = "REQUIRED for both apps. Installs the patched app as its own app next to the original YNAB Classic " +
         "(the original stays untouched). Alone it makes the TEST app \"$ALONGSIDE_LABEL\" ($ALONGSIDE_PACKAGE, orange bar): " +
         "then also turn on \"Dropbox budget folder\" with a TEST folder such as YNAB4_PLUS_TEST. Together with " +

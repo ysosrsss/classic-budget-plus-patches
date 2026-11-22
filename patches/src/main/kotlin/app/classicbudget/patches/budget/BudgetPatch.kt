@@ -1,6 +1,7 @@
 package app.classicbudget.patches.budget
 
 import app.classicbudget.patches.shared.Constants.COMPATIBILITY_YNAB_CLASSIC
+import app.classicbudget.patches.shared.PRODUCTION_ONLY
 import app.classicbudget.patches.shared.PlusResources.addActivity
 import app.classicbudget.patches.shared.PlusResources.addPermission
 import app.classicbudget.patches.shared.PlusResources.addService
@@ -49,7 +50,7 @@ val budgetPatch = bytecodePatch(
     description = "Experimental: set budgeted amounts, zero a month or quick-budget (last month / average) from the phone. " +
         "Writes the same monthlyCategoryBudget items as YNAB 4 desktop, keeps budget notes, and refuses edits it cannot do " +
         "safely. Limited to TEST and COPY budgets.",
-    default = false,
+    default = PRODUCTION_ONLY,
 ) {
     compatibleWith(COMPATIBILITY_YNAB_CLASSIC)
     dependsOn(budgetResources, plusSettingsPatch)

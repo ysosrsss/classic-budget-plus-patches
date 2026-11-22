@@ -1,6 +1,7 @@
 package app.classicbudget.patches.alongside
 
 import app.classicbudget.patches.shared.Constants.COMPATIBILITY_YNAB_CLASSIC
+import app.classicbudget.patches.shared.PRODUCTION_ONLY
 import app.classicbudget.patches.dropbox.dropboxPathAllowed
 import app.classicbudget.patches.dropbox.setDropboxPreset
 import app.classicbudget.patches.sync.syncProfilePatch
@@ -63,11 +64,15 @@ private val productionManifestPatch = resourcePatch {
 
 @Suppress("unused")
 val productionEditionPatch = bytecodePatch(
-    name = "Production edition",
-    description = "ON = the production app \"$PRODUCTION_LABEL\" ($PRODUCTION_PACKAGE) for your real budget; OFF = the TEST app. " +
-        "Includes the Dropbox folder selector before sign-in and in Plus settings. " +
-        "Budgeting and the schedule editor work on every budget.",
-    default = false,
+    name = if (PRODUCTION_ONLY) "Install YNAB Plus" else "Production edition",
+    description = if (PRODUCTION_ONLY) {
+        "Installs YNAB Plus alongside the original app. Choose a Dropbox folder at sign-in or in Plus settings."
+    } else {
+        "ON = the production app \"$PRODUCTION_LABEL\" ($PRODUCTION_PACKAGE) for your real budget; OFF = the TEST app. " +
+            "Includes the Dropbox folder selector before sign-in and in Plus settings. " +
+            "Budgeting and the schedule editor work on every budget."
+    },
+    default = PRODUCTION_ONLY,
 ) {
     compatibleWith(COMPATIBILITY_YNAB_CLASSIC)
     dependsOn(installAlongsidePatch, productionManifestPatch, syncProfilePatch)

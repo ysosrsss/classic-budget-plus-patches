@@ -41,17 +41,17 @@ Check the APK with `Get-FileHash -Algorithm SHA256 .\YNAB_Classic.apk` on Window
 ## Install with Morphe
 
 1. Add the source using the link above, or paste this repository's URL under **Patch sources → Remote**. You can also import the `.mpp` as a local source from [v1.0.0](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0).
-2. In Morphe's Expert mode, select the original APK and start with the recommended patches. Turn on **Install alongside the original**, **Production edition** and **Budget amounts from the phone**. For standard Dropbox sync, leave **Sync: Koofr, WebDAV and Syncthing folder** off.
+2. Select the original APK and use the recommended patches. **Install YNAB Plus** and **Budget amounts from the phone** are enabled by default. **Sync: Koofr, WebDAV and Syncthing folder** and **Recover a device letter (advanced)** are optional and start disabled.
 3. Patch and install **YNAB Plus**. For an update, use the same Morphe signing key as your existing patched app.
 4. At Dropbox setup, choose **Default location** for the same folders as the original YNAB 4 app, or **A different folder** for a test copy or a budget stored separately. Enter a Dropbox path such as `/Budgets/Household`. The chosen folder should contain `.ynabSettings.yroot`.
 
-To change the folder later, open **Plus settings → Dropbox folder**. Once all changes have synced, YNAB Plus reloads the budgets from the selected location and keeps your Dropbox sign-in. The folder choice is included in **Production edition**.
+To change the folder later, open **Plus settings → Dropbox folder**. Once all changes have synced, YNAB Plus reloads the budgets from the selected location and keeps your Dropbox sign-in.
 
 This is a preview. See the [release notes](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0) for the test coverage.
 
 ## Build
 
-Use Java 21, Android SDK Platform 36 and Build Tools 36. Configure the SDK through `ANDROID_HOME` or a local `local.properties`. Gradle reads GitHub Packages credentials from the user's Gradle configuration or the standard GitHub Actions environment. Run `gradlew.bat buildAndroid` on Windows or `./gradlew buildAndroid` on other platforms. The bundle is generated under `patches/build/libs`.
+Use Java 21, Android SDK Platform 36 and Build Tools 36. Configure the SDK through `ANDROID_HOME` or a local `local.properties`. Gradle reads GitHub Packages credentials from the user's Gradle configuration or the standard GitHub Actions environment. Run `gradlew.bat buildAndroid` on Windows or `./gradlew buildAndroid` on other platforms. This repository builds the production bundle by default. The output is under `patches/build/libs`.
 
 ## License
 

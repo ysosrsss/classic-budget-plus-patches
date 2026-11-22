@@ -1,5 +1,10 @@
 group = "app.classicbudget"
 
+val bundleProfile = if (providers.gradleProperty("productionOnly").orNull == "true") "release" else "lab"
+kotlin.sourceSets.named("main") {
+    kotlin.srcDir("src/$bundleProfile/kotlin")
+}
+
 patches {
     about {
         name = "Classic Budget Plus"
