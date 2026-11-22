@@ -1,0 +1,14 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.apk
+*.mpp
+*.keystore
+*.key
+*.yfull
+*.ydiff
+*.ydevice
+*.sqlite*
+*.log
+.env
