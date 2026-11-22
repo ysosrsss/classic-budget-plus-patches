@@ -4,13 +4,13 @@ Classic Budget Plus is an independent patch bundle for Morphe. It supports the Y
 
 ## Add to Morphe Manager
 
-Open Patch sources, add a remote source, and enter the URL of this repository. This repository is private. Use a GitHub token with read access to its contents in the Manager's GitHub PAT setting. Enter the token directly on your device. The repository URL resolves to the `patches-bundle.json` manifest on `main`, which points to the current private preview.
+Open Patch sources, add a remote source, and enter the URL of this repository. You can also use the [Add in Morphe Manager](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) link. The repository URL resolves to `patches-bundle.json`, which points to the current preview.
 
 You can also download the `.mpp` from Releases and import it as a local source. Use the same Morphe installation and signing key as your existing app when applying an update.
 
 ## Profiles
 
-Use a separate budget copy with the TEST profile. The production profile is a separate package and uses the original Dropbox budget folder. The first private release is provided for qualification. See its release notes for the exact tests completed.
+Use a separate budget copy with the TEST profile. The production profile is a separate package and uses the original Dropbox budget folder. The first release is a preview. See its release notes for the exact tests completed.
 
 ## Build
 
@@ -18,4 +18,4 @@ Use Java 21, Android SDK Platform 36 and Build Tools 36. Configure the SDK throu
 
 ## License
 
-The patch code is distributed under GPL-3.0. See LICENSE and NOTICE. YNAB and Morphe are separate projects.
+The patch code is distributed under GPL-3.0. See [LICENSE](LICENSE), [NOTICE](NOTICE) and [third-party notices](THIRD_PARTY_NOTICES.md). YNAB and Morphe are separate projects.
