@@ -1,8 +1,18 @@
 # Classic Budget Plus
 
-Classic Budget Plus brings desktop-style reports, saved transaction filters and category budgeting to the YNAB 4 Android companion. It is an independent patch bundle for Morphe and installs as **YNAB Plus** alongside the original app.
+Classic Budget Plus brings more of the YNAB 4 desktop workflow to Android. Add transactions quickly, manage your budget and scheduled transactions, and open reports on your phone. Morphe Manager patches the original APK and installs **YNAB Plus** directly on Android, alongside the original app, without ADB.
 
 [Add to Morphe](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) · [Download the v1.0.0 MPP](https://github.com/ysosrsss/classic-budget-plus-patches/releases/download/v1.0.0/classic-budget-plus-v1.0.0-production.mpp) · [Release notes](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0)
+
+## What it adds
+
+- **Faster transaction entry.** Keep **Add transaction** visible after saving. Open the full **Add Transaction** screen with the **+** home-screen widget, or choose a compact amount layout in **Plus settings → Transaction form**.
+- **Reports.** See spending by category or payee, monthly trends, net worth, and income versus expenses. Open reports full screen, use the landscape income and expense table, and tap amounts to see the underlying transactions.
+- **Budgeting.** Edit budgeted amounts, move money between categories, add notes and see what's left to fund a monthly goal.
+- **Scheduled transactions.** Create and edit recurring payments and scheduled transfers from the phone.
+- **Payee rules.** Remember the account and category for a payee. The transaction form can show whether a suggestion came from a rule, location or history.
+- **Transaction search.** Find entries by account, date, status or category, save filters and recategorize eligible transactions in bulk.
+- **Sync options.** Use the usual Dropbox location or a separate folder for a budget copy. If you ever need to move away from Dropbox, an optional patch adds Koofr, other WebDAV providers, and local folders synced with Syncthing.
 
 ## Screenshots
 
@@ -23,14 +33,11 @@ Captured on Android with a fictional budget. Tap an image to view it at full siz
 
 [![Landscape income and expense report with monthly columns](docs/screenshots/income-vs-expense.png)](docs/screenshots/income-vs-expense.png)
 
-- **Reports.** Explore category and payee spending, monthly trends, income and expenses, and net worth. Tap report amounts to see matching transactions.
-- **Transactions.** Search by account, date, status and category. Save filter combinations you use often and recategorize eligible transactions in bulk.
-- **Budget.** Edit a category's budgeted amount, move money between categories, add notes and see how much remains to meet a monthly goal.
-- **Quick entry.** Open a new transaction from the widget and see whether fields were suggested by a saved rule, location or transaction history.
-
 ## Supported APK
 
 Use your own unmodified **YNAB Classic `3.4.1_classic`**, version code `27296`, package `com.youneedabudget.ynab.app.market`. The SHA-256 below identifies the exact original file used to build and test the patches.
+
+If you're looking for the file, search for `YNAB Classic 3.4.1_classic APK` and check the SHA-256 before patching.
 
 ```text
 d49148b7c9501526c40890599d4ec4b5aad2bf57c0bd949d4649255c17f87772
@@ -40,16 +47,22 @@ Check the APK with `Get-FileHash -Algorithm SHA256 .\YNAB_Classic.apk` on Window
 
 ## Install with Morphe
 
-1. Add the source using the link above, or paste this repository's URL under **Patch sources → Remote**. You can also import the `.mpp` as a local source from [v1.0.0](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0).
-2. Select the original APK and use the recommended patches. **Install YNAB Plus** and **Budget amounts from the phone** are enabled by default. **Sync: Koofr, WebDAV and Syncthing folder** and **Recover a device letter (advanced)** are optional and start disabled.
-3. Patch and install **YNAB Plus**. For an update, use the same Morphe signing key as your existing patched app.
-4. At Dropbox setup, choose **Default location** for the same folders as the original YNAB 4 app, or **A different folder** for a test copy or a budget stored separately. Enter a Dropbox path such as `/Budgets/Household`. The chosen folder should contain `.ynabSettings.yroot`.
+Morphe Manager is the Android app that applies the `.mpp` patches to your original YNAB Classic APK on the phone. [Get Morphe Manager from its official GitHub releases](https://github.com/MorpheApp/morphe-manager/releases).
+
+1. Tap **Add to Morphe** above, or download the `.mpp` and import it in Morphe under **Sources → + → Local**.
+2. Open **YNAB Classic** in Morphe, select your original APK file and use the recommended patches. **Install YNAB Plus** and **Budget amounts from the phone** are enabled by default.
+3. Patch and tap **Install** in Morphe. Android handles installation. For an update, use the same Morphe signing key as your existing **YNAB Plus**.
+4. At Dropbox setup, choose **Default location** for the usual YNAB 4 folders or **A different folder** for a budget stored separately. Enter a path such as `/Budgets/Household`. That folder should contain `.ynabSettings.yroot`.
 
 To change the folder later, open **Plus settings → Dropbox folder**. Once all changes have synced, YNAB Plus reloads the budgets from the selected location and keeps your Dropbox sign-in.
+
+The **Sync: Koofr, WebDAV and Syncthing folder** and **Recover a device letter (advanced)** patches are optional and start disabled. Enable the sync patch in Morphe's Expert mode if you want the alternative providers in the app.
 
 ## Public preview
 
 The released bundle passed 14 offline Android 14 emulator checks covering an in-place update and Dropbox folder changes on an isolated budget copy. The maintainer reports that the app looks fine on their phone. Full phone-to-YNAB-Windows sync testing for this bundle is still pending. Try sync on a separate budget copy first.
+
+Built with help from Codex and Claude Code.
 
 If you run into an issue, include your phone model, Android version and the steps to reproduce it. [Report an issue on GitHub](https://github.com/ysosrsss/classic-budget-plus-patches/issues).
 
