@@ -1,16 +1,51 @@
 # Classic Budget Plus
 
-Classic Budget Plus is an independent patch bundle for Morphe. It supports the YNAB 4 Android companion app. Use your own original Android APK for version `3.4.1_classic`. The Releases page carries the `.mpp` bundle. The source builds the patches and their Android extension.
+Classic Budget Plus brings desktop-style reports, saved transaction filters and category budgeting to the YNAB 4 Android companion. It is an independent patch bundle for Morphe and installs as **YNAB Plus** alongside the original app.
 
-## Add to Morphe Manager
+[Add to Morphe](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) · [Download v1.0.0](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0) · [Supported APK](#supported-apk)
 
-Open Patch sources, add a remote source, and enter the URL of this repository. You can also use the [Add in Morphe Manager](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) link. The repository URL resolves to `patches-bundle.json`, which points to the current preview.
+## Screenshots
 
-You can also download the `.mpp` from Releases and import it as a local source. Use the same Morphe installation and signing key as your existing app when applying an update.
+Captured on Android with a fictional budget. Tap an image to view it at full size.
 
-## Profiles
+<table>
+  <tr>
+    <th>Spending by category</th>
+    <th>Spending trends</th>
+    <th>Saved transaction filters</th>
+  </tr>
+  <tr>
+    <td><a href="docs/screenshots/spending-by-category.png"><img src="docs/screenshots/spending-by-category.png" width="230" alt="Spending ring and category totals"></a></td>
+    <td><a href="docs/screenshots/spending-trends.png"><img src="docs/screenshots/spending-trends.png" width="230" alt="Monthly spending chart grouped by category"></a></td>
+    <td><a href="docs/screenshots/saved-filters.png"><img src="docs/screenshots/saved-filters.png" width="230" alt="Saved filters and transaction search results"></a></td>
+  </tr>
+</table>
 
-Use a separate budget copy with the TEST profile. The production profile is a separate package and uses the original Dropbox budget folder. The first release is a preview. See its release notes for the exact tests completed.
+[![Landscape income and expense report with monthly columns](docs/screenshots/income-vs-expense.png)](docs/screenshots/income-vs-expense.png)
+
+- **Reports.** Explore category and payee spending, monthly trends, income and expenses, and net worth. Tap report amounts to see matching transactions.
+- **Transactions.** Search by account, date, status and category. Save filter combinations you use often and recategorize eligible transactions in bulk.
+- **Budget.** Edit a category's budgeted amount, move money between categories, add notes and see how much remains to meet a monthly goal.
+- **Quick entry.** Open a new transaction from the widget and see whether fields were suggested by a saved rule, location or transaction history.
+
+## Supported APK
+
+Use your own unmodified **YNAB Classic `3.4.1_classic`**, version code `27296`, package `com.youneedabudget.ynab.app.market`. The SHA-256 below identifies the exact original file used to build and test the patches.
+
+```text
+d49148b7c9501526c40890599d4ec4b5aad2bf57c0bd949d4649255c17f87772
+```
+
+Check the APK with `Get-FileHash -Algorithm SHA256 .\YNAB_Classic.apk` on Windows or `shasum -a 256 YNAB_Classic.apk` on macOS. The release provides the Morphe `.mpp` bundle.
+
+## Install with Morphe
+
+1. Add the source using the link above, or paste this repository's URL under **Patch sources → Remote**. You can also import the `.mpp` as a local source from [v1.0.0](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0).
+2. In Morphe's Expert mode, select the original APK and start with the recommended patches. Turn on **Install alongside the original**, **Production edition** and **Budget amounts from the phone**. For standard Dropbox sync, leave **Sync: Koofr, WebDAV and Syncthing folder** off.
+3. Choose your Dropbox setup before patching. For the usual locations at the Dropbox root and in `/YNAB`, leave **Dropbox budget folder** off. For a first install with a budget in a different folder, enable it and enter a path such as `Budgets/Household`, without a leading slash. That folder should contain `.ynabSettings.yroot`. The current bundle reserves folder names containing `TEST` for development.
+4. Patch and install **YNAB Plus**. For an update, use the same Morphe signing key and Dropbox settings as your existing patched app.
+
+This is a preview. See the [release notes](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0) for the test coverage.
 
 ## Build
 
