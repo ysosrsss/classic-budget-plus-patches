@@ -49,14 +49,14 @@ Open **Plus → Budgeting** and pick a month. The table shows budgeted, spent an
 
 ## Reports
 
-Open **Plus → Reports**. Use the filters at the top to choose dates and, where available, categories, accounts, payees or the device that last edited an entry. Filters are saved per report. **Options** can reset them and change report visibility or orientation.
+Open **Plus → Reports**. Use the filters at the top to choose dates and, where available, categories, accounts, payees or the device that last edited an entry. Filters are saved per report. **More** can reset them and change report visibility or orientation.
 
 - **Categories and Payees** show spending. Use the chart or ranked list and tap an amount to inspect the transactions. Search category groups, including hidden categories, or select all items in a group.
 - **Spending Trends** shows monthly spending by group. Drag across the chart to change the selected month, or tap a segment to focus it and open its categories or transactions.
-- **Income / expense** has a monthly chart and a table. Turn the phone sideways for the wider table or set rotation in **Options**. Sort income sources alphabetically or by total.
+- **Income / expense** has a monthly chart and a table. Turn the phone sideways for the wider table or set rotation in **More**. Sort income sources alphabetically or by total.
 - **Net worth** shows assets and debt over time for the selected accounts.
-- **Upcoming**, **By device**, **Budget analysis** and **Comparison** can be enabled in **Options → Report visibility**. The comparison uses the same filters for both periods. The device report tracks which device last edited an entry.
-- In supported reports, **Options → Export** offers CSV or Print / PDF. Transaction lists have their own search and totals. **Hide amounts** is available in the reports and budgeting screens.
+- **Upcoming**, **By device**, **Budget analysis** and **Comparison** can be enabled in **More → Report visibility**. The comparison uses the same filters for both periods. The device report tracks which device last edited an entry.
+- In supported reports, **More → Export** offers CSV or Print / PDF. Transaction lists have their own search and totals. **Hide amounts** is available in the reports and budgeting screens.
 
 ## Sync and budget copies
 
