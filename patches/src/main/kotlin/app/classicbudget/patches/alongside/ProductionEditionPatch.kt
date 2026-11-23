@@ -81,9 +81,10 @@ val productionEditionPatch = bytecodePatch(
     val initialFolder by stringOption(
         key = "initialDropboxFolder",
         default = "",
-        title = "Initial Dropbox folder",
-        description = "Optional path to the folder containing .ynabSettings.yroot. Empty uses Dropbox's original root and /YNAB. " +
-            "Keep the same path when upgrading a previously patched custom-folder installation.",
+        title = "Legacy Dropbox path (optional text)",
+        description = "Usually leave blank. Choose the Dropbox folder in YNAB Plus after installation. " +
+            "If an older custom-folder setup used this patch option, type the same path without a leading slash, " +
+            "e.g. Budgets/Household. Morphe treats paths starting with / as phone storage.",
         required = false,
     ) { value -> dropboxPathAllowed(value) }
 

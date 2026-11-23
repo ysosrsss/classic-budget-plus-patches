@@ -56,6 +56,10 @@ public final class BackendChooserActivity extends Activity {
             add(layout, BackendSelector.WEBDAV, "Koofr", !locked || BackendSelector.WEBDAV.equals(chosen), "backend-koofr", true);
             add(layout, BackendSelector.WEBDAV, tr("Other WebDAV (Nextcloud, NAS…)", "Inny WebDAV (Nextcloud, NAS…)"), !locked || BackendSelector.WEBDAV.equals(chosen), "backend-webdav", false);
             add(layout, BackendSelector.FOLDER, "Folder (Syncthing)", !locked || BackendSelector.FOLDER.equals(chosen), "backend-folder", false);
+            TextView localFolder = new TextView(this);
+            localFolder.setText(tr("Folder (Syncthing) opens a folder on this phone.",
+                "Folder (Syncthing) otwiera folder w pamięci telefonu."));
+            layout.addView(localFolder);
         }
         if (locked) {
             Button change = new Button(this);

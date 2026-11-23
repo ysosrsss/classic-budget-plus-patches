@@ -23,6 +23,14 @@ private val targetSdkManifestPatch = resourcePatch {
             else doc.createElement("uses-sdk").also { manifest.insertBefore(it, manifest.firstChild) }
             if (!sdk.hasAttribute("android:minSdkVersion")) sdk.setAttribute("android:minSdkVersion", "15")
             sdk.setAttribute("android:targetSdkVersion", TARGET_SDK)
+            // Android's location dialog expects both permissions when requesting precise access.
+            val coarse = "android.permission.ACCESS_COARSE_LOCATION"
+            val permissions = doc.getElementsByTagName("uses-permission")
+            if ((0 until permissions.length).none { (permissions.item(it) as Element).getAttribute("android:name") == coarse }) {
+                val permission = doc.createElement("uses-permission")
+                permission.setAttribute("android:name", coarse)
+                manifest.insertBefore(permission, doc.getElementsByTagName("application").item(0))
+            }
         }
     }
 }

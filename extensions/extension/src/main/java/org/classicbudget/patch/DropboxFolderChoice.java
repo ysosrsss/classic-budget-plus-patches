@@ -30,15 +30,15 @@ final class DropboxFolderChoice extends LinearLayout {
         choices.setOrientation(VERTICAL);
         usual = option("dropbox-folder-default", tr("Default location", "Domyślne położenie"),
             tr("Same as in the original YNAB 4 app.", "Tak jak w oryginalnej aplikacji YNAB 4."));
-        custom = option("dropbox-folder-custom", tr("A different folder", "Inny folder"),
-            tr("For a test copy or a budget stored in a separate Dropbox folder.",
-                "Do kopii testowej lub budżetu w osobnym folderze Dropbox."));
+        custom = option("dropbox-folder-custom", tr("A different Dropbox folder", "Inny folder Dropbox"),
+            tr("Type the Dropbox path for a test copy or a separately stored budget.",
+                "Wpisz ścieżkę Dropboxa do kopii testowej lub budżetu w osobnym folderze."));
         addView(choices);
 
         path = new EditText(context);
         path.setSingleLine(true);
         path.setContentDescription(pathDescription);
-        path.setHint(tr("Folder path", "Ścieżka folderu"));
+        path.setHint(tr("Dropbox path", "Ścieżka w Dropboxie"));
         path.setEnabled(editable);
         addView(path);
         pathHelp = new TextView(context);

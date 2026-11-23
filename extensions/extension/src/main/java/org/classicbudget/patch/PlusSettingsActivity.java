@@ -1,10 +1,13 @@
 package org.classicbudget.patch;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -14,6 +17,9 @@ import java.util.*;
 
 /** "Plus settings" ("Ustawienia Plus"): local settings of the optional modules. Today: account suggestions. */
 public class PlusSettingsActivity extends Activity {
+    private static final int LOCATION_PERMISSION = 102;
+    private static final String USE_GPS = "useGps";
+    private CheckBox gpsPayees;
     /** Language of our screens: English unless Polish is chosen in Plus settings (PlusLang). */
     static String tr(String en, String pl) { return PlusLang.tr(en, pl); }
     SharedPreferences prefs;
@@ -21,7 +27,11 @@ public class PlusSettingsActivity extends Activity {
     protected boolean rulesOnly() { return false; }
 
     protected void onCreate(Bundle state) {
-        super.onCreate(state); PlusEdition.mark(this); setTitle(tr("Plus settings", "Ustawienia Plus"));
+        super.onCreate(state);
+        PlusEdition.mark(this);
+        String title = tr("Plus settings", "Ustawienia Plus");
+        int version = getResources().getIdentifier("cb_plus_bundle_version", "string", getPackageName());
+        setTitle(version == 0 ? title : title + " · " + getString(version));
         // §160: opened by a registration stopped at A–Z; only the choice dialog, no budget page (none is open yet).
         if ("new".equals(getIntent().getStringExtra("takeover"))) {
             setContentView(new LinearLayout(this));
@@ -120,6 +130,14 @@ public class PlusSettingsActivity extends Activity {
         layout.addView(alerts);
         layout=section(page,"suggestions",tr("Account suggestions","Podpowiadanie kont"),tr("Default account and payee suggestions","Konto domyślne i podpowiedzi płatników"));
         note(layout, tr("These settings apply to this phone only. They do not change the budget or other devices.", "Ustawienia dotyczą tylko tego telefonu. Nie zmieniają budżetu ani innych urządzeń."));
+        SharedPreferences display = getSharedPreferences(Display.PREFS, 0);
+        CheckBox ruleStatus = new CheckBox(this);
+        ruleStatus.setText(tr("Show when a payee rule fills a field", "Pokazuj, gdy reguła płatnika uzupełni pole"));
+        ruleStatus.setContentDescription("suggestion-source-icons");
+        ruleStatus.setChecked(display.getBoolean(SuggestionSource.SHOW_RULE_STATUS, true));
+        ruleStatus.setOnCheckedChangeListener((button, on) -> display.edit().putBoolean(SuggestionSource.SHOW_RULE_STATUS, on).apply());
+        layout.addView(ruleStatus);
+        addGpsPayeeSetting(layout);
         modes(layout, "payee_mode", tr("Account after choosing a payee", "Konto po wybraniu płatnika"), new String[]{
             tr("Original: last account used with this payee, by anyone", "Oryginalnie: ostatnie konto z tym płatnikiem, ktokolwiek je wpisał"),
             tr("Prefer my entries: last account I used with this payee", "Preferuj moje wpisy: ostatnie konto, którego ja użyłem z tym płatnikiem"),
@@ -150,6 +168,56 @@ public class PlusSettingsActivity extends Activity {
             deviceSection.setVisibility(View.VISIBLE);
             scroll.post(new Runnable(){public void run(){scroll.smoothScrollTo(0,Math.max(0,deviceSection.getTop()-80));}});
         }
+    }
+
+    private void addGpsPayeeSetting(LinearLayout layout) {
+        gpsPayees = new CheckBox(this);
+        gpsPayees.setText(tr("Nearby payees (GPS)", "Płatnicy w pobliżu (GPS)"));
+        gpsPayees.setContentDescription("gps-payees");
+        gpsPayees.setOnClickListener(view -> {
+            boolean enabled = gpsPayees.isChecked();
+            if (!enabled || gpsPermission()) {
+                gpsPreferences().edit().putBoolean(USE_GPS, enabled).apply();
+            } else {
+                gpsPayees.setChecked(false);
+                if (Build.VERSION.SDK_INT >= 23) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION);
+                }
+            }
+        });
+        layout.addView(gpsPayees);
+        refreshGpsPayees();
+    }
+
+    private SharedPreferences gpsPreferences() {
+        return PreferenceManager.getDefaultSharedPreferences(this);
+    }
+
+    private boolean gpsPermission() {
+        return checkCallingOrSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+            == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void refreshGpsPayees() {
+        if (gpsPayees != null) gpsPayees.setChecked(gpsPermission() && gpsPreferences().getBoolean(USE_GPS, false));
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        refreshGpsPayees();
+    }
+
+    @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(code, permissions, results);
+        if (code != LOCATION_PERMISSION) return;
+        if (gpsPermission()) {
+            gpsPreferences().edit().putBoolean(USE_GPS, true).apply();
+        } else {
+            Toast.makeText(this, tr("Allow precise location in Android settings to see nearby payees.",
+                "Zezwól na dokładną lokalizację w ustawieniach Androida, aby zobaczyć płatników w pobliżu."), Toast.LENGTH_LONG).show();
+        }
+        refreshGpsPayees();
     }
 
     void reportVisibility(LinearLayout layout, String kind, String label) {

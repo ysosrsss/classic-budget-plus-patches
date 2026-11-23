@@ -26,6 +26,14 @@ dependencies {
     patchListGeneratorClasspath(libs.gson)
 }
 
+tasks.processResources {
+    val bundleVersion = project.version.toString()
+    inputs.property("bundleVersion", bundleVersion)
+    filesMatching("cb-plus-bundle-version.txt") {
+        expand("bundleVersion" to bundleVersion)
+    }
+}
+
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"

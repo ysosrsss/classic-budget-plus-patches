@@ -1,6 +1,7 @@
 package app.classicbudget.patches.plus
 
 import app.classicbudget.patches.shared.Constants.COMPATIBILITY_YNAB_CLASSIC
+import app.classicbudget.patches.shared.PlusResources
 import app.classicbudget.patches.shared.PlusResources.addActivity
 import app.classicbudget.patches.shared.PlusResources.addSettingsEntry
 import app.classicbudget.patches.shared.PlusResources.addString
@@ -28,6 +29,9 @@ private const val PL = "Lorg/classicbudget/patch/"
 
 internal val plusSettingsResources = resourcePatch {
     execute {
+        val bundleVersion = checkNotNull(PlusResources::class.java.getResourceAsStream("/cb-plus-bundle-version.txt"))
+            .bufferedReader().use { it.readText().trim() }
+        addString("cb_plus_bundle_version", bundleVersion, bundleVersion)
         addActivity(P + "ScheduledActivity", addString("cb_schedules", "Scheduled transactions", "Zlecenia stałe"))
         addActivity(P + "PayeeRulesActivity", addString("cb_payee_rules", "Payee rules", "Reguły płatników"))
         addActivity(P + "PlusSettingsActivity", addString("cb_plus_settings", "Plus settings", "Ustawienia Plus"))
@@ -392,17 +396,9 @@ val accountSuggestionsPatch = bytecodePatch(
                 lookup, "invoke-static {p0, v${args.registerC}, v${args.registerD}}, $sources->$replacement($editorType${lookupTypes})J",
             )
         }
-        val gps = editor.methods.single { it.name == "f" && it.parameterTypes == listOf("Ljava/lang/String;") }
-        val gpsFill = gps.implementation!!.instructions.toList().indices.single { position ->
-            val ref = (gps.implementation!!.instructions.elementAt(position) as? ReferenceInstruction)?.reference as? MethodReference
-            ref?.definingClass == editorType && ref.name == "d" && ref.parameterTypes == listOf("Ljava/lang/String;")
-        }
-        // This instruction is reached only after the native GPS/payee guard passed.
-        gps.addInstruction(gpsFill, "invoke-static {p0, p1}, $sources->locationPayee(Landroid/app/Activity;Ljava/lang/String;)V")
         // a(J) clears the native account bit 0x10. d(J) clears the category bit 0x02.
-        listOf(Triple("e", "Ljava/lang/String;", "manualPayee"), Triple("a", "J", "manualAccount"),
-            Triple("d", "J", "manualCategory")).forEach { (name, type, call) ->
-            editor.methods.single { it.name == name && it.parameterTypes == listOf(type) }.addInstruction(
+        listOf("a" to "manualAccount", "d" to "manualCategory").forEach { (name, call) ->
+            editor.methods.single { it.name == name && it.parameterTypes == listOf("J") }.addInstruction(
                 0, "invoke-static {p0}, $sources->$call(Landroid/app/Activity;)V",
             )
         }
@@ -417,7 +413,7 @@ val accountSuggestionsPatch = bytecodePatch(
         }
         val defaultArgs = opening[applyDefault] as FiveRegisterInstruction
         openBudget.addInstruction(
-            applyDefault, "invoke-static {v${defaultArgs.registerC}, v${defaultArgs.registerD}, v${defaultArgs.registerE}}, $sources->defaultAccount(${editorType}J)V",
+            applyDefault, "invoke-static {v${defaultArgs.registerC}}, $sources->defaultAccount($editorType)V",
         )
 
         val form = mutableClassDefBy("Lcom/youneedabudget/ynab/app/edit/n;").methods.single {
@@ -428,10 +424,9 @@ val accountSuggestionsPatch = bytecodePatch(
         val returned = formInstructions.indices.single { formInstructions[it].opcode == Opcode.RETURN_OBJECT }
         val formRegister = (formInstructions[returned] as OneRegisterInstruction).registerA
         val rules = "${PL}TransactionPayeeRule;"
-        form.addInstructions(returned, """
-            invoke-static/range {v$formRegister .. v$formRegister}, $rules->attach(Landroid/view/View;)V
-            invoke-static/range {v$formRegister .. v$formRegister}, $sources->attach(Landroid/view/View;)V
-        """.trimIndent())
+        form.addInstruction(
+            returned, "invoke-static/range {v$formRegister .. v$formRegister}, $rules->attach(Landroid/view/View;)V",
+        )
 
         val operationType = "Lcom/youneedabudget/ynab/core/backend/r;"
         val write = mutableClassDefBy(operationType).methods.single {

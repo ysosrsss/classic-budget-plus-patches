@@ -20,10 +20,9 @@ public final class Compat {
         }
     }
 
-    /** True when the app holds a location permission (payee locations are then used as before). */
+    /** The original location helper registers the GPS provider, which needs precise access. */
     public static boolean locationAllowed(Context context) {
         if (context == null) return false;
-        return context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-            || context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        return context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 }

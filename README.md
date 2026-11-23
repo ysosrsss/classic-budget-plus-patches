@@ -6,14 +6,20 @@ Classic Budget Plus brings more of the YNAB 4 desktop workflow to Android. Add t
 
 ## What it adds
 
-- **Faster startup.** Budget loading starts without the original splash screen's fixed two-second delay.
-- **Faster transaction entry.** Keep **Add transaction** visible after saving. Open the full **Add Transaction** screen with the **+** home-screen widget, or choose a compact amount layout in **Plus settings → Transaction form**.
-- **Reports.** See spending by category or payee, monthly trends, net worth, and income versus expenses. Open reports full screen, use the landscape income and expense table, and tap amounts to see the underlying transactions.
-- **Budgeting.** Edit budgeted amounts, move money between categories, add notes and see what's left to fund a monthly goal.
-- **Scheduled transactions.** Create and edit recurring payments and scheduled transfers from the phone.
-- **Payee rules.** Remember the account and category for a payee. The transaction form can show whether a suggestion came from a rule, location or history.
-- **Transaction search.** Find entries by account, date, status or category, save filters and recategorize eligible transactions in bulk.
-- **Sync options.** Use the usual Dropbox location or a separate folder for a budget copy. If you ever need to move away from Dropbox, an optional patch adds Koofr, other WebDAV providers, and local folders synced with Syncthing.
+Open the **Plus** button on the budget screen to get to budgeting, reports, scheduled transactions, and search. Budget loading starts without the original splash screen's fixed two-second delay.
+
+| What you want to do | Where to start |
+| --- | --- |
+| Add a purchase in a few taps | Open **Add Transaction** or add either **New transaction** widget to the home screen. [Transaction entry](docs/USER_GUIDE.md#add-a-transaction) |
+| Find and tidy up old entries | Tap **Plus → Search transactions**. Try **Needs a category** or **Unreconciled**, save a filter, or select eligible entries to change their category together. [Search and saved filters](docs/USER_GUIDE.md#search-and-save-filters) |
+| Reuse an account or category | Tick **Remember rule** while adding a transaction, or open **Plus settings → Account suggestions → Payee rules**. [Rules, history and nearby payees](docs/USER_GUIDE.md#payee-rules-and-nearby-payees) |
+| Plan the month and track goals | Open **Plus → Budgeting** to edit amounts, move money, set monthly goals, and see how much is left to fund. [Budgeting](docs/USER_GUIDE.md#budgeting) |
+| Manage recurring payments | Open **Plus → Scheduled transactions** to create a schedule or preview **Upcoming** payments. [Scheduled transactions](docs/USER_GUIDE.md#scheduled-transactions) |
+| See where the money went | Open **Plus → Reports**, choose a view and tap an amount to see the transactions behind it. [Reports and exports](docs/USER_GUIDE.md#reports) |
+| Use Dropbox or another sync provider | Open **Plus settings → Budget and sync** for Dropbox folders, sync status and diagnostics. Koofr, WebDAV and Syncthing are available through an optional patch. [Sync and budget copies](docs/USER_GUIDE.md#sync-and-budget-copies) |
+| Adjust the app for your phone | Open **Plus settings** for theme, language, form layout, alerts and report visibility. [Appearance and widgets](docs/USER_GUIDE.md#appearance-and-widgets) |
+
+[Full user guide](docs/USER_GUIDE.md) · [Feature history](CHANGELOG.md)
 
 ## Screenshots
 
@@ -34,6 +40,8 @@ Captured on Android with a fictional budget. Tap an image to view it at full siz
 
 [![Landscape income and expense report with monthly columns](docs/screenshots/income-vs-expense.png)](docs/screenshots/income-vs-expense.png)
 
+See the [Remember rule checkbox](docs/screenshots/remember-payee-rule.png) and the [Dropbox folder screen](docs/screenshots/dropbox-folder.png) in the user guide.
+
 ## Supported APK
 
 Use your own unmodified **YNAB Classic `3.4.1_classic`**, version code `27296`, package `com.youneedabudget.ynab.app.market`. The SHA-256 below identifies the exact original file used to build and test the patches.
@@ -53,15 +61,21 @@ Morphe Manager is the Android app that applies the `.mpp` patches to your origin
 1. Tap **Add to Morphe** above, or download the `.mpp` and import it in Morphe under **Sources → + → Local**.
 2. Open **YNAB Classic** in Morphe, select your original APK file and use the recommended patches. **Install YNAB Plus** and **Budget amounts from the phone** are enabled by default.
 3. Patch and tap **Install** in Morphe. Android handles installation. For an update, use the same Morphe signing key as your existing **YNAB Plus**.
-4. At Dropbox setup, choose **Default location** for the usual YNAB 4 folders or **A different folder** for a budget stored separately. Enter a path such as `/Budgets/Household`. That folder should contain `.ynabSettings.yroot`.
+4. At Dropbox setup in YNAB Plus, choose **Default location** for the usual YNAB 4 folders or **A different Dropbox folder** for a budget stored separately. Type a Dropbox path such as `/Budgets/Household`. That folder should contain `.ynabSettings.yroot`.
 
-To change the folder later, open **Plus settings → Dropbox folder**. Once all changes have synced, YNAB Plus reloads the budgets from the selected location and keeps your Dropbox sign-in.
+### Update an existing installation
+
+This preview refresh uses the same **v1.0.0** release tag. If Morphe still shows an older copy, download the MPP above and use **Sources → Update** on the local Classic Budget Plus source, or add it as a local source. Apply its recommended patches to the original APK and install over your existing **YNAB Plus** using the same signing key. The refreshed app shows **Plus settings · 1.0.0** in its header. [Source management in Morphe](https://github.com/MorpheApp/morphe-manager/blob/v2.5.0/docs/patch-sources.md#local)
+
+### Choose a Dropbox folder
+
+To change it later, open **Plus settings → Budget and sync → Dropbox folder**. Once all changes have synced, YNAB Plus reloads the budgets from that location and keeps your Dropbox sign-in. **Folder (Syncthing)** opens Android storage. The **Legacy Dropbox path** patch option in Morphe is usually blank. For an older installation that used a custom path in that option, keep its existing value without a leading slash when entering it in Morphe.
 
 The **Sync: Koofr, WebDAV and Syncthing folder** and **Recover a device letter (advanced)** patches are optional and start disabled. Enable the sync patch in Morphe's Expert mode if you want the alternative providers in the app.
 
 ## Public preview
 
-The released bundle passed 14 offline Android 14 emulator checks covering an in-place update and Dropbox folder changes on an isolated budget copy. The maintainer reports that the app looks fine on their phone. Full phone-to-YNAB-Windows sync testing for this bundle is still pending. Try sync on a separate budget copy first.
+Android 14 emulator checks cover an in-place update on an isolated copy of a real budget, preservation of its configured Dropbox folder, the rule checkbox, and typing a Dropbox path in the app. Earlier builds also covered the pending-sync guard and a live switch between isolated Dropbox folders. Full phone-to-YNAB-Windows sync testing for the refreshed bundle is still pending. Try sync on a separate budget copy first.
 
 Built with help from Codex and Claude Code.
 

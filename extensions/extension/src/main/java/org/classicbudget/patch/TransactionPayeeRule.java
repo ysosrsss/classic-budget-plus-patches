@@ -7,9 +7,11 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -22,6 +24,7 @@ import java.util.WeakHashMap;
 /** Bridge between the native new-transaction form and the existing payee rule editor. */
 public final class TransactionPayeeRule {
     private static final String CHOICE = "cb.remember_payee_rule";
+    private static final String STATUS = "cb.applied_payee_rule";
     static final String DRAFT = "cb.payee_rule_draft";
     static final String BUDGET = "cb.payee_rule_budget";
     private static final WeakHashMap<Activity, Boolean> choices = new WeakHashMap<>();
@@ -51,29 +54,74 @@ public final class TransactionPayeeRule {
         View date = form.findViewById(id);
         if (date == null || !(date.getParent() instanceof LinearLayout)) return;
         LinearLayout parent = (LinearLayout) date.getParent();
+        LinearLayout row = new LinearLayout(activity);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(date.getPaddingLeft(), 0, date.getPaddingRight(), 0);
+        float density = activity.getResources().getDisplayMetrics().density;
+        int controlSize = Math.round(44 * density);
+        row.setMinimumHeight(controlSize);
+
+        TextView label = new TextView(activity);
+        label.setText(PlusLang.tr("Remember rule", "Zapamiętaj regułę"));
+        label.setGravity(Gravity.CENTER_VERTICAL);
+        label.setMinHeight(controlSize);
+
         CheckBox checkbox = new CheckBox(activity);
         checkbox.setTag(CHOICE);
         checkbox.setContentDescription("remember-payee-rule");
-        checkbox.setText(PlusLang.tr("Remember payee rule", "Zapamiętaj regułę płatnika"));
-        checkbox.setMinHeight(Math.round(48 * activity.getResources().getDisplayMetrics().density));
-        checkbox.setPadding(date.getPaddingLeft(), 0, date.getPaddingRight(), 0);
-        int valueId = activity.getResources().getIdentifier("date_value", "id", activity.getPackageName());
-        View dateValue = date.findViewById(valueId);
-        if (dateValue instanceof TextView) {
-            TextView value = (TextView) dateValue;
-            checkbox.setTextColor(value.getTextColors());
-            checkbox.setTextSize(TypedValue.COMPLEX_UNIT_PX, value.getTextSize());
-            checkbox.setTypeface(value.getTypeface());
-            if (Build.VERSION.SDK_INT >= 21) {
-                checkbox.setButtonTintList(new ColorStateList(
-                    new int[][]{{android.R.attr.state_checked}, {}},
-                    new int[]{0xff31a5bb, value.getCurrentTextColor()}));
-            }
+        checkbox.setGravity(Gravity.CENTER_VERTICAL);
+        checkbox.setPadding(0, 0, 0, 0);
+
+        TextView status = new TextView(activity);
+        status.setTag(STATUS);
+        status.setText(PlusLang.tr("Rule applied", "Użyto reguły"));
+        status.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        status.setAlpha(0.78f);
+        status.setPadding(Math.round(8 * density), 0, 0, 0);
+        status.setVisibility(View.GONE);
+        int labelId = activity.getResources().getIdentifier("account_label", "id", activity.getPackageName());
+        View accountLabel = form.findViewById(labelId);
+        if (accountLabel instanceof TextView) {
+            TextView nativeLabel = (TextView) accountLabel;
+            label.setTextColor(nativeLabel.getTextColors());
+            label.setTextSize(TypedValue.COMPLEX_UNIT_PX, nativeLabel.getTextSize());
+            label.setTypeface(nativeLabel.getTypeface());
+            status.setTextColor(nativeLabel.getCurrentTextColor());
         }
+        alignCheckbox(checkbox, label.getCurrentTextColor());
         checkbox.setChecked(Boolean.TRUE.equals(choices.get(activity)));
         checkbox.setOnCheckedChangeListener((view, checked) -> choices.put(activity, checked));
-        parent.addView(checkbox, parent.indexOfChild(date) + 1, new LinearLayout.LayoutParams(
+        label.setOnClickListener(view -> checkbox.performClick());
+        row.addView(label, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        row.addView(status, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT));
+        row.addView(checkbox, new LinearLayout.LayoutParams(controlSize, controlSize));
+        parent.addView(row, parent.indexOfChild(date) + 1, new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        SuggestionSource.bind(activity, status);
+    }
+
+    private static void alignCheckbox(CheckBox checkbox, int textColor) {
+        if (Build.VERSION.SDK_INT < 21) return;
+        ColorStateList tint = new ColorStateList(new int[][]{{android.R.attr.state_checked}, {}},
+            new int[]{0xff31a5bb, textColor});
+        if (Build.VERSION.SDK_INT >= 23) {
+            Drawable indicator = checkbox.getButtonDrawable();
+            if (indicator != null) {
+                // The original manifest uses left-to-right layout. Place the stock stateful icon
+                // in the right drawable slot without changing the checkbox's click or checked state.
+                checkbox.setButtonDrawable((Drawable) null);
+                indicator = indicator.mutate();
+                indicator.setTintList(tint);
+                checkbox.setCompoundDrawablesWithIntrinsicBounds(null, null, indicator, null);
+                return;
+            }
+        }
+        checkbox.setButtonTintList(tint);
+    }
+
+    static TextView ruleStatus(Activity activity) {
+        return activity.getWindow().getDecorView().findViewWithTag(STATUS);
     }
 
     private static boolean newTransaction(Activity activity) {
