@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-r4U80xXBPB6xAmUFnpu8v6i4ZSc1efnwwZv2BxgbOlY='; style-src 'unsafe-inline'">
+<meta name="robots" content="noindex">
+<title>Classic Budget Plus · powrót z banku</title>
+<style>
+  body { font: 17px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; max-width: 34em; color: #1c1c1c; background: #fafafa; }
+  @media (prefers-color-scheme: dark) { body { color: #eee; background: #121212; } }
+  a.button, button { display: block; width: 100%; box-sizing: border-box; margin: 14px 0; padding: 14px; font-size: 17px;
+    border-radius: 10px; border: 0; background: #2e7d32; color: #fff; text-align: center; text-decoration: none; }
+  button.secondary { background: #607d8b; }
+  .small { font-size: 14px; opacity: .8; }
+</style>
+</head>
+<body>
+<h1>Powrót do aplikacji</h1>
+<p id="status">Otwieram Classic Budget Plus…</p>
+<a class="button" id="open" href="#">Otwórz Classic Budget Plus</a>
+<button class="secondary" id="copy" type="button">Kopiuj adres (gdy aplikacja się nie otwiera)</button>
+<p class="small">Ta strona tylko przekazuje jednorazowy kod z banku do aplikacji na tym telefonie. Niczego nie zapisuje
+i nie wysyła dalej. Kod jest bezużyteczny bez klucza, który znajduje się wyłącznie w telefonie.<br>
+Classic Budget Plus to nieoficjalny, prywatny dodatek; nie jest powiązany z YNAB ani z Enable Banking.</p>
+<script>
+(function () {
+  var q = location.search;
+  var ok = /^\?(?:[A-Za-z0-9_\-.~%]+=[A-Za-z0-9_\-.~%+]*&?)+$/.test(q) && /[?&]state=/.test(q);
+  var status = document.getElementById('status');
+  if (!ok) { status.textContent = 'Brak danych zgody w adresie. Wróć do aplikacji i rozpocznij zgodę ponownie.'; return; }
+  var link = 'intent://callback' + q + '#Intent;scheme=cbplus-enablebanking;end';
+  var plain = 'cbplus-enablebanking://callback' + q;
+  var open = document.getElementById('open');
+  open.href = /Android/i.test(navigator.userAgent) ? link : plain;
+  document.getElementById('copy').onclick = function () {
+    navigator.clipboard.writeText(location.href).then(function () { status.textContent = 'Skopiowano. Wklej adres w aplikacji: Operacje z banku → Wklej ze schowka.'; });
+  };
+  try { location.replace(open.href); } catch (e) {}
+  setTimeout(function () { status.textContent = 'Jeśli aplikacja się nie otworzyła, naciśnij przycisk poniżej.'; }, 1200);
+})();
+</script>
+</body>
+</html>
