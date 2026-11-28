@@ -2,10 +2,16 @@
 
 For the full feature list and the menu paths, see the [user guide](docs/USER_GUIDE.md). Build numbers below identify internal Android builds. Public Morphe bundles are published as GitHub releases.
 
-## v1.0.1 — 28 November 2026
+## v1.0.2 — 28 November 2026
 
-- **Readable menus and dialogs in dark mode on Android 16.** On recent Android 16 updates (reported on a Pixel 7a) the ⋮ menu (**Open budget**, **Settings**, **Help**) and the buttons of dialogs showed white text on a white background when the app was dark. In dark mode these pop-ups now have a solid dark background, and dialogs use Android's own dark style. Light mode looks exactly as before.
-- No other changes. Budgets, settings and sync work as in v1.0.0, and the same patches are recommended.
+Dark mode fixes, mainly for recent Android 16 updates (Android 16 QPR, for example on Pixel phones) and Android 17. Light mode looks exactly as before.
+
+- **Readable ⋮ menu.** **Open budget**, **Settings** and **Help** showed white text on a white background. The menu now has a dark background.
+- **Readable dialogs.** Dialog buttons such as **Cancel**, and list rows such as **Reports → Last edited on**, were white on white. In dark mode dialogs now use Android's standard light dialog style, which Android darkens correctly, so both their buttons and their contents are readable.
+- **Dark amount keypad.** The keys of the amount and passcode keypads stayed light grey with light-blue digits. They are now dark with a black grid.
+- **Visible Remember rule box.** The empty **Remember rule** check box in a new transaction is now light grey instead of dark grey on a dark form.
+
+v1.0.1 was withdrawn on the day of release: its dark dialog style made the text inside some dialogs (for example **Reports → Dates** and **Edit payee rule**) dark on dark. v1.0.2 replaces it. Budgets, settings and sync work as in v1.0.0, and the same patches are recommended.
 
 ## v1.0.0 preview refresh — 23 November 2026, build 150
 

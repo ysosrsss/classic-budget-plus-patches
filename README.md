@@ -2,7 +2,7 @@
 
 Classic Budget Plus brings more of the YNAB 4 desktop workflow to Android. Add transactions quickly, manage your budget and scheduled transactions, and open reports on your phone. Morphe Manager patches the original APK and installs **YNAB Plus** directly on Android, alongside the original app, without ADB.
 
-[Add to Morphe](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) · [Download the v1.0.0 MPP](https://github.com/ysosrsss/classic-budget-plus-patches/releases/download/v1.0.0/classic-budget-plus-v1.0.0-production.mpp) · [Release notes](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0)
+[Add to Morphe](https://morphe.software/add-source?github=ysosrsss/classic-budget-plus-patches) · [Download the v1.0.2 MPP](https://github.com/ysosrsss/classic-budget-plus-patches/releases/download/v1.0.2/classic-budget-plus-v1.0.2-production.mpp) · [Release notes](https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.2)
 
 ## What it adds
 
@@ -65,7 +65,7 @@ Morphe Manager is the Android app that applies the `.mpp` patches to your origin
 
 ### Update an existing installation
 
-This preview refresh uses the same **v1.0.0** release tag. If Morphe still shows an older copy, download the MPP above and use **Sources → Update** on the local Classic Budget Plus source, or add it as a local source. Apply its recommended patches to the original APK and install over your existing **YNAB Plus** using the same signing key. The refreshed app shows **Plus settings · 1.0.0** in its header. [Source management in Morphe](https://github.com/MorpheApp/morphe-manager/blob/v2.5.0/docs/patch-sources.md#local)
+If Morphe still shows an older version, download the MPP above and use **Sources → Update** on the local Classic Budget Plus source, or add it as a local source. Apply its recommended patches to the original APK and install over your existing **YNAB Plus** using the same signing key. The updated app shows **Plus settings · 1.0.2** in its header. [Source management in Morphe](https://github.com/MorpheApp/morphe-manager/blob/v2.5.0/docs/patch-sources.md#local)
 
 ### Choose a Dropbox folder
 

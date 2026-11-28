@@ -282,6 +282,7 @@ val reportsPatch = bytecodePatch(
 internal val displayResources = resourcePatch {
     execute {
         lateinit var dayTheme: Element
+        var dayKeypad: Element? = null
         document("res/values/styles.xml").use { doc ->
             val styles = doc.getElementsByTagName("style")
             val theme = (0 until styles.length).map { styles.item(it) as Element }.single { it.getAttribute("name") == "AppTheme" }
@@ -295,11 +296,20 @@ internal val displayResources = resourcePatch {
                 }
             }
             dayTheme = theme.cloneNode(true) as Element
+            dayKeypad = (0 until styles.length).map { styles.item(it) as Element }.firstOrNull { it.getAttribute("name") == KEYPAD_STYLE }
+                ?.cloneNode(true) as Element?
         }
-        // Android 16 QPR (API 36.1; report from a Pixel 7a, reproduced on the emulator): force dark lightens text but no
-        // longer darkens some Holo light nine-patches, so the ⋮ menu ("Open budget") and dialog buttons are white on
-        // white. Night mode therefore uses a solid dark colour for pop-ups and the system's own dark dialogs; both are
-        // readable with and without force dark. values-night is used only when the app runs in night mode.
+        // Android 16 QPR (API 36.1; reports from a Pixel 7a and Android 17, reproduced on the emulator): force dark
+        // lightens text but no longer darkens some Holo light nine-patches, so the ⋮ menu ("Open budget"), dialog
+        // button bars and dialog lists are white on white. Night mode therefore gives pop-ups a solid dark colour and
+        // dialogs the system's light DeviceDefault theme, whose backgrounds are plain colours that force dark still
+        // darkens. Dialogs must stay a light theme: force dark then also lightens the text of their custom views, which
+        // are built from the light activity theme (1.0.1 used the dark dialog theme and that text became dark on dark).
+        // values-night is used only when the app runs in night mode.
+        // The amount and passcode keypads use light nine-patch keys (keypad_default) that Android 16 QPR force dark no
+        // longer darkens: light-blue digits on light grey keys. Night mode gives them a plain dark key instead.
+        val keypadDrawable = get("res/drawable/$KEYPAD_NIGHT_DRAWABLE.xml", false)
+        if (!keypadDrawable.exists()) keypadDrawable.writeText(KEYPAD_NIGHT_SELECTOR)
         val night = get("res/values-night/styles.xml", false)
         if (!night.exists()) {
             night.parentFile.mkdirs()
@@ -311,10 +321,16 @@ internal val displayResources = resourcePatch {
             for (popup in POPUPS) {
                 if (popup.style !in names) doc.documentElement.appendChild(popupStyle(doc, popup, POPUP_NIGHT_BACKGROUND))
             }
+            val keypad = dayKeypad
+            if (keypad != null && KEYPAD_STYLE !in names) {
+                val copy = doc.importNode(keypad, true) as Element
+                setItem(doc, copy, "android:background", "@drawable/$KEYPAD_NIGHT_DRAWABLE")
+                doc.documentElement.appendChild(copy)
+            }
             // A night copy of AppTheme (only Display edits AppTheme) that differs only in the dialog theme.
             if ("AppTheme" !in names) {
                 val theme = doc.importNode(dayTheme, true) as Element
-                setItem(doc, theme, "android:alertDialogTheme", "@android:style/Theme.DeviceDefault.Dialog.Alert")
+                setItem(doc, theme, "android:alertDialogTheme", "@android:style/Theme.DeviceDefault.Light.Dialog.Alert")
                 doc.documentElement.appendChild(theme)
             }
         }
@@ -322,6 +338,20 @@ internal val displayResources = resourcePatch {
 }
 private const val FORCE_DARK_ALLOWED = "r0x0101058c" // android:forceDarkAllowed
 private const val POPUP_NIGHT_BACKGROUND = "#ff2b2b2b"
+private const val KEYPAD_STYLE = "keypadButton"
+private const val KEYPAD_NIGHT_DRAWABLE = "cb_keypad_night"
+
+/** Dark key with a black outline (neighbours form a black grid like the stock keys); a lighter grey while pressed. */
+private val KEYPAD_NIGHT_SELECTOR = """<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape><solid android:color="#ff3a3a3a" /><stroke android:width="1dp" android:color="#ff000000" /></shape>
+    </item>
+    <item>
+        <shape><solid android:color="#ff1c1c1c" /><stroke android:width="1dp" android:color="#ff000000" /></shape>
+    </item>
+</selector>
+"""
 
 /** A pop-up whose Holo light background may stay light under force dark: theme attribute, own style, Holo light parent. */
 private class Popup(val attribute: String, val style: String, val parent: String)

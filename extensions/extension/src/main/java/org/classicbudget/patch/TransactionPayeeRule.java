@@ -88,7 +88,7 @@ public final class TransactionPayeeRule {
             label.setTypeface(nativeLabel.getTypeface());
             status.setTextColor(nativeLabel.getCurrentTextColor());
         }
-        alignCheckbox(checkbox, label.getCurrentTextColor());
+        alignCheckbox(checkbox, uncheckedColor(activity, label.getCurrentTextColor()));
         checkbox.setChecked(Boolean.TRUE.equals(choices.get(activity)));
         checkbox.setOnCheckedChangeListener((view, checked) -> choices.put(activity, checked));
         label.setOnClickListener(view -> checkbox.performClick());
@@ -100,6 +100,18 @@ public final class TransactionPayeeRule {
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         SuggestionSource.bind(activity, status);
     }
+
+    /**
+     * Colour of the empty box. In night mode force dark lightens the label text but not a drawable tint, so the label's
+     * dark grey would leave a dark box on a dark form; a light grey keeps it visible.
+     */
+    private static int uncheckedColor(Activity activity, int labelColor) {
+        int night = activity.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        if (night == android.content.res.Configuration.UI_MODE_NIGHT_YES) return NIGHT_UNCHECKED;
+        return labelColor;
+    }
+
+    private static final int NIGHT_UNCHECKED = 0xffb4b4b4;
 
     private static void alignCheckbox(CheckBox checkbox, int textColor) {
         if (Build.VERSION.SDK_INT < 21) return;
