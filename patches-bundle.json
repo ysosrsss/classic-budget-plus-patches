@@ -1,7 +1,7 @@
 {
-  "version": "1.0.1",
-  "download_url": "https://github.com/ysosrsss/classic-budget-plus-patches/releases/download/v1.0.1/classic-budget-plus-v1.0.1-production.mpp",
-  "created_at": "2026-11-28T07:41:18",
-  "description": "Classic Budget Plus 1.0.1. Readable menus and dialogs in dark mode on Android 16.",
-  "page_url": "https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.1"
+  "version": "1.0.0",
+  "download_url": "https://github.com/ysosrsss/classic-budget-plus-patches/releases/download/v1.0.0/classic-budget-plus-v1.0.0-production.mpp",
+  "created_at": "2026-11-23T07:30:57",
+  "description": "Classic Budget Plus preview build 150. Updated payee rule controls, nearby payee settings and Dropbox folder guidance.",
+  "page_url": "https://github.com/ysosrsss/classic-budget-plus-patches/releases/tag/v1.0.0"
 }
