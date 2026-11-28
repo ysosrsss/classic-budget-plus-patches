@@ -1,6 +1,11 @@
 # Changelog
 
-For the full feature list and the menu paths, see the [user guide](docs/USER_GUIDE.md). Build numbers below identify internal Android builds. The public Morphe bundle uses a single `v1.0.0` release.
+For the full feature list and the menu paths, see the [user guide](docs/USER_GUIDE.md). Build numbers below identify internal Android builds. Public Morphe bundles are published as GitHub releases.
+
+## v1.0.1 — 28 November 2026
+
+- **Readable menus and dialogs in dark mode on Android 16.** On recent Android 16 updates (reported on a Pixel 7a) the ⋮ menu (**Open budget**, **Settings**, **Help**) and the buttons of dialogs showed white text on a white background when the app was dark. In dark mode these pop-ups now have a solid dark background, and dialogs use Android's own dark style. Light mode looks exactly as before.
+- No other changes. Budgets, settings and sync work as in v1.0.0, and the same patches are recommended.
 
 ## v1.0.0 preview refresh — 23 November 2026, build 150
 

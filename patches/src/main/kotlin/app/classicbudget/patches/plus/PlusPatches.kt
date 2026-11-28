@@ -281,17 +281,76 @@ val reportsPatch = bytecodePatch(
  */
 internal val displayResources = resourcePatch {
     execute {
+        lateinit var dayTheme: Element
         document("res/values/styles.xml").use { doc ->
             val styles = doc.getElementsByTagName("style")
             val theme = (0 until styles.length).map { styles.item(it) as Element }.single { it.getAttribute("name") == "AppTheme" }
-            val items = theme.getElementsByTagName("item")
-            if ((0 until items.length).none { (items.item(it) as Element).getAttribute("name") == FORCE_DARK_ALLOWED }) {
-                theme.appendChild(doc.createElement("item").also { it.setAttribute("name", FORCE_DARK_ALLOWED); it.textContent = "true" })
+            setItem(doc, theme, FORCE_DARK_ALLOWED, "true")
+            // Pop-ups get own styles so night mode can give them a solid background (below). In day mode each one is
+            // exactly its Holo light parent, i.e. unchanged.
+            for (popup in POPUPS) {
+                setItem(doc, theme, popup.attribute, "@style/${popup.style}")
+                if ((0 until styles.length).none { (styles.item(it) as Element).getAttribute("name") == popup.style }) {
+                    doc.documentElement.appendChild(popupStyle(doc, popup, null))
+                }
+            }
+            dayTheme = theme.cloneNode(true) as Element
+        }
+        // Android 16 QPR (API 36.1; report from a Pixel 7a, reproduced on the emulator): force dark lightens text but no
+        // longer darkens some Holo light nine-patches, so the ⋮ menu ("Open budget") and dialog buttons are white on
+        // white. Night mode therefore uses a solid dark colour for pop-ups and the system's own dark dialogs; both are
+        // readable with and without force dark. values-night is used only when the app runs in night mode.
+        val night = get("res/values-night/styles.xml", false)
+        if (!night.exists()) {
+            night.parentFile.mkdirs()
+            night.writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n</resources>\n")
+        }
+        document("res/values-night/styles.xml").use { doc ->
+            val styles = doc.getElementsByTagName("style")
+            val names = (0 until styles.length).map { (styles.item(it) as Element).getAttribute("name") }
+            for (popup in POPUPS) {
+                if (popup.style !in names) doc.documentElement.appendChild(popupStyle(doc, popup, POPUP_NIGHT_BACKGROUND))
+            }
+            // A night copy of AppTheme (only Display edits AppTheme) that differs only in the dialog theme.
+            if ("AppTheme" !in names) {
+                val theme = doc.importNode(dayTheme, true) as Element
+                setItem(doc, theme, "android:alertDialogTheme", "@android:style/Theme.DeviceDefault.Dialog.Alert")
+                doc.documentElement.appendChild(theme)
             }
         }
     }
 }
 private const val FORCE_DARK_ALLOWED = "r0x0101058c" // android:forceDarkAllowed
+private const val POPUP_NIGHT_BACKGROUND = "#ff2b2b2b"
+
+/** A pop-up whose Holo light background may stay light under force dark: theme attribute, own style, Holo light parent. */
+private class Popup(val attribute: String, val style: String, val parent: String)
+
+private val POPUPS = listOf(
+    Popup("android:popupMenuStyle", "CbPopupMenu", "@android:style/Widget.Holo.Light.PopupMenu"),
+    Popup("android:autoCompleteTextViewStyle", "CbAutoComplete", "@android:style/Widget.Holo.Light.AutoCompleteTextView"),
+    Popup("android:spinnerStyle", "CbSpinner", "@android:style/Widget.Holo.Light.Spinner"),
+)
+
+private fun setItem(doc: org.w3c.dom.Document, theme: Element, name: String, value: String) {
+    val items = theme.getElementsByTagName("item")
+    val existing = (0 until items.length).map { items.item(it) as Element }.firstOrNull { it.getAttribute("name") == name }
+    if (existing != null) {
+        existing.textContent = value
+        return
+    }
+    theme.appendChild(doc.createElement("item").also { it.setAttribute("name", name); it.textContent = value })
+}
+
+private fun popupStyle(doc: org.w3c.dom.Document, popup: Popup, background: String?): Element {
+    val style = doc.createElement("style")
+    style.setAttribute("name", popup.style)
+    style.setAttribute("parent", popup.parent)
+    if (background != null) {
+        style.appendChild(doc.createElement("item").also { it.setAttribute("name", "android:popupBackground"); it.textContent = background })
+    }
+    return style
+}
 
 // Dark theme: AppTheme cannot carry android:forceDarkAllowed here (Morphe's resource encoder does not know that API 29
 // attribute), so Display turns the window renderer's force-dark on at runtime instead (Display.applyForceDark).
